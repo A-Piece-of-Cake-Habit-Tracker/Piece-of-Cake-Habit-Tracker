@@ -1,38 +1,41 @@
 import * as React from 'react';
-import { NativeBaseProvider, Box, HStack, VStack, Text, Pressable, Image, Center } from 'native-base';
+import {Alert, StatusBar} from 'react-native';
+import { NativeBaseProvider, Box, HStack, VStack, Text, Pressable, Button, Image, Center, Left, Spacer, usePropsResolution } from 'native-base';
 
-function Example() {
+function Header() {
   return <NativeBaseProvider>
-      <Box bg="primary.600" py="4" px="3" rounded="md" width={375} maxWidth="100%">
-        <HStack justifyContent="space-between">
-          <Box justifyContent="space-between">
-            <VStack space="2">
-              <Text fontSize="sm" color="white">
-                Today @ 9PM
+      <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
+          <VStack pl={5} alignItems="flex-start" >
+            <Text fontSize="4xl" fontWeight="bold" color="black">
+                  Hey there,
+            </Text>
+            <Text mt={-3} fontSize="4xl" fontWeight="bold" color="black">
+                  Ketsib
+            </Text>
+          </VStack>
+          <Box>
+            <Button 
+              variant="ghost"
+              onPress={() => Alert.alert("hello world")}>
+              <Text fontSize="xl" fontWeight="bold" color="cyan.600">
+                Edit
               </Text>
-              <Text color="white" fontSize="xl">
-                Let's talk about avatar!
-              </Text>
-            </VStack>
-            <Pressable rounded="xs" bg="primary.400" alignSelf="flex-start" py="1" px="3">
-              <Text textTransform="uppercase" fontSize="sm" fontWeight="bold" color="white">
-                Remind me
-              </Text>
-            </Pressable>
+            </Button>
           </Box>
-          <Image source={{
-          uri: 'https://media.vanityfair.com/photos/5ba12e6d42b9d16f4545aa19/3:2/w_1998,h_1332,c_limit/t-Avatar-The-Last-Airbender-Live-Action.jpg'
-        }} alt="Aang flying and surrounded by clouds" height="100" rounded="full" width="100" />
-        </HStack>
-      </Box>
+                    
+      </HStack>
+      <VStack mt="15" width={375} maxWidth="100%" space={4} alignItems="center">
+        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
+        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
+        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
+      </VStack>
     </NativeBaseProvider>;
 }
-
     export default () => {
         return (
           <NativeBaseProvider>
-            <Center flex={1} px="3">
-                <Example />
+            <Center maxWidth="100%" flex={1} px="3">
+                <Header />
             </Center>
           </NativeBaseProvider>
         );

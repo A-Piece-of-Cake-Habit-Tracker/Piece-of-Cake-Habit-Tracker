@@ -22,6 +22,13 @@ function Header() {
               </Text>
             </Button>
           </Box>
+          <Box>
+            <Button 
+              variant="ghost"
+              onPress={() => Alert.alert("hello world")}>
+              <Image source={require('../assets/plus.png')} size="xl" />
+            </Button>
+          </Box>
                     
       </HStack>
       <VStack mt="15" width={375} maxWidth="100%" space={4} alignItems="center">

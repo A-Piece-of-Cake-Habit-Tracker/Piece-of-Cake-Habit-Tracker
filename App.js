@@ -23,7 +23,7 @@ export default function App() {
         <TouchableOpacity 
             style={{height:40}}
             onPress={() => Alert.alert('Add habit tab goes here')}>
-            <Image source={require('./plus.png')}  style={styles.img}/>
+            <Image source={require('./assets/plus.png')}  style={styles.img}/>
           </TouchableOpacity>
         </View>
       </View>

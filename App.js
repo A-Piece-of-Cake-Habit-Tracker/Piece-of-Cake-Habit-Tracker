@@ -13,36 +13,89 @@ function Header() {
                   Ketsib
             </Text>
           </VStack>
-          <Box>
-            <Button 
+          <Box h="10" alignItems="center">
+            <Button
               variant="ghost"
-              onPress={() => Alert.alert("hello world")}>
+              onPress={() => Alert.alert("This is the Edit Habit tab")}>
               <Text fontSize="xl" fontWeight="bold" color="cyan.600">
                 Edit
               </Text>
             </Button>
           </Box>
-          <Box>
+          <Box ml={-20} h="10" w="10" alignItems="center">
+            <Button
+              h="10" w="10"
+              alignItems="center"
+              variant="solid"
+              rounded="3xl"
+              onPress={() => Alert.alert("This is the Add Habit tab")}>
+              <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white">
+                +
+              </Text>
+            </Button>
+          </Box>
+
+          {/* <Box ml={-10} h="10">
             <Button 
               variant="ghost"
               onPress={() => Alert.alert("hello world")}>
-              <Image source={require('../assets/plus.png')} size="xl" />
+              <Image h="10" w="10" source={require('./assets/plus.png')} alt="Add habit" />
+            </Button>
+          </Box> */}
+      </HStack>
+    </NativeBaseProvider>;
+}
+
+function HabitsList () {
+  return <NativeBaseProvider>
+    <VStack mt="50" width={375} maxWidth="100%" space={4} alignItems="center">
+      <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
+      <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
+      <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
+    </VStack>
+  </NativeBaseProvider>
+}
+
+function Bottom () {
+  return <NativeBaseProvider>
+      <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
+          <Box h="10" alignItems="center">
+            <Button
+              variant="solid"
+              colorScheme="secondary"
+              onPress={() => Alert.alert("This is the Main Menu tab")}>
+              <Text fontSize="xl" fontWeight="bold" color="white">
+                Main Menu
+              </Text>
             </Button>
           </Box>
-                    
+          <Box h="10" alignItems="center">
+            <Button
+              variant="solid"
+              colorScheme="secondary"
+              onPress={() => Alert.alert("This is the Statistics tab")}>
+              <Text fontSize="xl" fontWeight="bold" color="white">
+                Statistics
+              </Text>
+            </Button>
+          </Box>
       </HStack>
-      <VStack mt="15" width={375} maxWidth="100%" space={4} alignItems="center">
-        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
-        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
-        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
-      </VStack>
+
+
     </NativeBaseProvider>;
 }
     export default () => {
         return (
           <NativeBaseProvider>
-            <Center maxWidth="100%" flex={1} px="3">
+            <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
                 <Header />
+                {/* <Spacer /> */}
+                <HabitsList />
+                <Spacer />
+                <Spacer />
+                <Spacer />
+                <Spacer />
+                <Bottom />
             </Center>
           </NativeBaseProvider>
         );

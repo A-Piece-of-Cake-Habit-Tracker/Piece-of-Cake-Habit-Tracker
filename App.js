@@ -10,7 +10,7 @@ function Header() {
                   Hey there,
             </Text>
             <Text mt={-3} fontSize="4xl" fontWeight="bold" color="black">
-                  Ketsib
+                  Rowena
             </Text>
           </VStack>
           <Box alignItems="center">

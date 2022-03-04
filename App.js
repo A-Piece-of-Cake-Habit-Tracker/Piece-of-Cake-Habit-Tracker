@@ -1,42 +1,4 @@
 import React from 'react';
-<<<<<<< Updated upstream
-import { StyleSheet, Button, View, SafeAreaView, Text, Alert } from 'react-native';
-
-const App = () => (
-  <SafeAreaView style={styles.container}>
-    <View>
-      <Text style={styles.title}>
-        A Piece of Cake: Habit Tracker
-      </Text>
-      <Button
-        title="Main Menu"
-        onPress={() => Alert.alert('Main Menu Tab goes here')}
-      />
-    </View>
-    <View>
-      <Button
-        title="Statistics"
-        color="#f194ff"
-        onPress={() => Alert.alert('Statistics Tab goes here')}
-      />
-    </View>
-    <View>
-      <Button
-        title="Add Habit"
-        color="#3ded97"
-        onPress={() => Alert.alert('Add Habit Tab goes here')}
-      />
-    </View>
-    <View>
-      <Button
-        title="Edit Habit"
-        color="#f9e076"
-        onPress={() => Alert.alert('Edit Habit Tab goes here')}
-      />
-    </View>
-  </SafeAreaView>
-);
-=======
 import { StyleSheet, StatusBar, Button, View, SafeAreaView, Text, Alert, TouchableOpacity, Image} from 'react-native';
 
 export default function App() {
@@ -82,7 +44,6 @@ export default function App() {
         onPress={() => Alert.alert('Statistics Tab goes here')}
         />
       </View>
->>>>>>> Stashed changes
 
     </SafeAreaView>
   );
@@ -92,18 +53,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'column', // main axis
     flex: 1,
-<<<<<<< Updated upstream
-    justifyContent: 'center',
-    marginHorizontal: 16,
-  },
-  title: {
-    textAlign: 'center',
-    marginVertical: 8,
-  },
-});
-
-export default App;
-=======
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10: 0,
     backgroundColor: '#eee',
   },
@@ -141,4 +90,3 @@ export default App;
     backgroundColor: '#aaa'
   }
 });
->>>>>>> Stashed changes

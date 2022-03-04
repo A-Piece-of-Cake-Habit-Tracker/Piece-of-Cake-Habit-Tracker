@@ -1,64 +1,40 @@
-import React from 'react';
-import { StyleSheet, StatusBar, Image} from 'react-native';
-import { NativeBaseProvider, Text, Box, Button } from 'native-base';
+import * as React from 'react';
+import { NativeBaseProvider, Box, HStack, VStack, Text, Pressable, Image, Center } from 'native-base';
 
-export default function App() {
-  return (
-    <NativeBaseProvider>
-      <Box flex={1} bg="#fff" alignItems="center" justifyContent="center">
-        <Text>Open up App.js to start working on your app!</Text>
+function Example() {
+  return <NativeBaseProvider>
+      <Box bg="primary.600" py="4" px="3" rounded="md" width={375} maxWidth="100%">
+        <HStack justifyContent="space-between">
+          <Box justifyContent="space-between">
+            <VStack space="2">
+              <Text fontSize="sm" color="white">
+                Today @ 9PM
+              </Text>
+              <Text color="white" fontSize="xl">
+                Let's talk about avatar!
+              </Text>
+            </VStack>
+            <Pressable rounded="xs" bg="primary.400" alignSelf="flex-start" py="1" px="3">
+              <Text textTransform="uppercase" fontSize="sm" fontWeight="bold" color="white">
+                Remind me
+              </Text>
+            </Pressable>
+          </Box>
+          <Image source={{
+          uri: 'https://media.vanityfair.com/photos/5ba12e6d42b9d16f4545aa19/3:2/w_1998,h_1332,c_limit/t-Avatar-The-Last-Airbender-Live-Action.jpg'
+        }} alt="Aang flying and surrounded by clouds" height="100" rounded="full" width="100" />
+        </HStack>
       </Box>
-
-      <Box alignItems="center" style={styles.button}>
-        <Button onPress={() => console.log("hello world")}>Click Me</Button>
-      </Box>
-
-    </NativeBaseProvider>
-  );
+    </NativeBaseProvider>;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'column', // main axis
-    flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10: 0,
-    backgroundColor: '#eee',
-  },
-  topContainer: {
-    flexDirection: 'row', // main axis
-    justifyContent: 'space-around', // along main axis
-    alignItems: 'flex-start', // along cross axis
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10: 0,
-    backgroundColor: '#aaa',
-  },
-  title: {
-    flex: 3,
-    textAlign: 'left',
-    color: "black",
-    fontSize: 45,
-    paddingLeft: 20,
-    paddingRight: 20,
-    lineHeight: 45,
-  },
-  top:{
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  topbuttons: {
-    flex: 1
-  },
-  img: {
-    width:35,
-    height:35
-  },
-  menu:{
-    flex:1,
-    justifyContent: 'center',
-  },
-  bottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    bottom: 40,
-    backgroundColor: '#aaa'
-  }
-});
+    export default () => {
+        return (
+          <NativeBaseProvider>
+            <Center flex={1} px="3">
+                <Example />
+            </Center>
+          </NativeBaseProvider>
+        );
+    };
+    

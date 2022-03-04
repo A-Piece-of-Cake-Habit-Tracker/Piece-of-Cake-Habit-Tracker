@@ -13,7 +13,7 @@ function Header() {
                   Ketsib
             </Text>
           </VStack>
-          <Box h="10" alignItems="center">
+          <Box alignItems="center">
             <Button
               variant="ghost"
               onPress={() => Alert.alert("This is the Edit Habit tab")}>
@@ -59,7 +59,7 @@ function HabitsList () {
 function Bottom () {
   return <NativeBaseProvider>
       <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
-          <Box h="10" alignItems="center">
+          <Box alignItems="center">
             <Button
               variant="solid"
               colorScheme="secondary"
@@ -69,7 +69,7 @@ function Bottom () {
               </Text>
             </Button>
           </Box>
-          <Box h="10" alignItems="center">
+          <Box alignItems="center">
             <Button
               variant="solid"
               colorScheme="secondary"

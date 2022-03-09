@@ -1,6 +1,39 @@
 import * as React from 'react';
 import {Alert, StatusBar} from 'react-native';
-import { NativeBaseProvider, Box, HStack, VStack, Text, Pressable, Button, Image, Center, Left, Spacer, usePropsResolution } from 'native-base';
+import { NativeBaseProvider, View, Box, HStack, VStack, Text, Pressable, Button, Image, Center, Left, Spacer, usePropsResolution } from 'native-base';
+
+class EditButton extends React.Component {
+  constructor(props) {
+    super(props);
+    this.toggleEdit = this.toggleEdit.bind(this);
+    this.toggleCancel = this.toggleCancel.bind(this);
+    this.state = {toggled: false};
+  }
+
+  toggleEdit() {
+    this.setState({toggled: true});
+  }
+
+  toggleCancel() {
+    this.setState({toggled: false});
+  }
+
+  render() {
+    const toggled = this.state.toggled;
+    let button;
+    if (toggled) {
+      button = <Button onPress={() => this.toggleCancel()}>Cancel</Button>;
+    } else {
+      button = <Button onPress={() => this.toggleEdit()}>Edit</Button>;
+    }
+
+    return (
+      <View>
+        {button}
+      </View>
+    );
+  }
+}
 
 function Header() {
   return <NativeBaseProvider>
@@ -14,13 +47,7 @@ function Header() {
             </Text>
           </VStack>
           <Box alignItems="center">
-            <Button
-              variant="ghost"
-              onPress={() => Alert.alert("This is the Edit Habit tab")}>
-              <Text fontSize="xl" fontWeight="bold" color="cyan.600">
-                Edit
-              </Text>
-            </Button>
+            <EditButton />
           </Box>
           <Box ml={-20} h="10" w="10" alignItems="center">
             <Button

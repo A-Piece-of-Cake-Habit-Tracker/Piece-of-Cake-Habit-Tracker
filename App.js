@@ -195,6 +195,7 @@ const App = () => {
                   </Button>
                 }
             </Box>
+            {!toggleEdit &&
             <Box ml={-20} mr={-20} h="10" w="10" alignItems="center">
                 <Button
                 h="10" w="10"
@@ -209,6 +210,7 @@ const App = () => {
                 </Text>
                 </Button>
             </Box>
+            }
             <Center>
                 <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
                 <Modal.Content maxWidth="400px">

@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Alert, StatusBar} from 'react-native';
 import { NativeBaseProvider, View, Box, HStack, VStack, Text, Pressable, Button, Image, Center, Left, Spacer, usePropsResolution } from 'native-base';
 
-class EditButton extends React.Component {
+class Menu extends React.Component {
   constructor(props) {
     super(props);
     this.toggleEdit = this.toggleEdit.bind(this);
@@ -21,22 +21,17 @@ class EditButton extends React.Component {
   render() {
     const toggled = this.state.toggled;
     let button;
+    let EditBut;
     if (toggled) {
       button = <Button onPress={() => this.toggleCancel()}>Cancel</Button>;
+      EditBut = <View><Button onPress={() => Alert.alert("Editing form goes here")}>Edit</Button><Button onPress={() => Alert.alert("Delete form goes here")}>Delete</Button></View>;
     } else {
       button = <Button onPress={() => this.toggleEdit()}>Edit</Button>;
+      EditBut = <Button onPress={() => Alert.alert("View form goes here")}>View</Button>;
     }
 
     return (
-      <View>
-        {button}
-      </View>
-    );
-  }
-}
-
-function Header() {
-  return <NativeBaseProvider>
+      <NativeBaseProvider>
       <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
           <VStack pl={5} alignItems="flex-start" >
             <Text fontSize="4xl" fontWeight="bold" color="black">
@@ -47,7 +42,7 @@ function Header() {
             </Text>
           </VStack>
           <Box alignItems="center">
-            <EditButton />
+            {button}
           </Box>
           <Box ml={-20} h="10" w="10" alignItems="center">
             <Button
@@ -61,27 +56,23 @@ function Header() {
               </Text>
             </Button>
           </Box>
-
-          {/* <Box ml={-10} h="10">
-            <Button 
-              variant="ghost"
-              onPress={() => Alert.alert("hello world")}>
-              <Image h="10" w="10" source={require('./assets/plus.png')} alt="Add habit" />
-            </Button>
-          </Box> */}
       </HStack>
-    </NativeBaseProvider>;
+      <VStack mt="50" space={4} alignItems="center">
+        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3}>
+          {EditBut}
+        </Center>
+        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3}>
+          {EditBut}
+        </Center>
+        <Center w="80" h="20" bg="white" rounded="2xl" shadow={3}>
+          {EditBut}
+        </Center>
+      </VStack>
+    </NativeBaseProvider>
+    );
+  }
 }
 
-function HabitsList () {
-  return <NativeBaseProvider>
-    <VStack mt="50" width={375} maxWidth="100%" space={4} alignItems="center">
-      <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
-      <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
-      <Center w="80" h="20" bg="white" rounded="2xl" shadow={3} />
-    </VStack>
-  </NativeBaseProvider>
-}
 
 function Bottom () {
   return <NativeBaseProvider>
@@ -111,20 +102,18 @@ function Bottom () {
 
     </NativeBaseProvider>;
 }
-    export default () => {
-        return (
-          <NativeBaseProvider>
-            <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
-                <Header />
-                {/* <Spacer /> */}
-                <HabitsList />
-                <Spacer />
-                <Spacer />
-                <Spacer />
-                <Spacer />
-                <Bottom />
-            </Center>
-          </NativeBaseProvider>
-        );
+export default () => {
+    return (
+      <NativeBaseProvider>
+        <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
+            <Menu />
+            <Spacer />
+            <Spacer />
+            <Spacer />
+            <Spacer />
+            <Bottom />
+        </Center>
+      </NativeBaseProvider>
+    );
     };
     

@@ -40,6 +40,7 @@ const App = () => {
     const [formOfMeasurement, setFormOfMeasurement] = useState("");
     const [goal, setGoal] = useState("");
     const [habits, setHabits] = useState([]);
+    const [toggleEdit, setToggleEdit] = useState(false);
   
     const createTables = () => {
       db.transaction(txn => {
@@ -57,6 +58,7 @@ const App = () => {
       });
     };
   
+
     const addHabit = () => {
       if (!habitName) {
         alert("Enter habit");
@@ -126,21 +128,19 @@ const App = () => {
       return (
         <NativeBaseProvider>
             <Center>
-                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} style={{flexWrap: "wrap", overflow: "hidden"}}>
+                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3}>
                     <HStack>
-                        <Box h="20" w="55"
-                        backgroundColor={"cyan.600"} alignItems="center">
-                            
-                        </Box>
-                        <VStack pt={3} pb={3} pr={5} pl={5}>
-                            {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
-                            <Text fontSize="xl" fontWeight="bold" color="muted.900">{item.habitName}</Text>
-                            <HStack alignItems={"flex-start"}>
-                                <Text fontSize="sm" fontWeight="bold" color="cyan.600">{item.goal} time/s</Text>
-                                <Text italic fontSize="sm" fontWeight="medium" color="coolGray.600"> every {item.recurrence} day/s</Text>
-                            </HStack>
-                            {/* <Text>{item.formOfMeasurement}</Text>        */}
-                        </VStack>
+                    <VStack pt={3} pb={3} pr={5} pl={5}>
+                        {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
+                        <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
+                        <HStack alignItems={"flex-start"}>
+                            <Text fontSize="sm" fontWeight="bold" color="cyan.600">{item.goal} time/s</Text>
+                            <Text italic fontSize="sm" fontWeight="medium" color="coolGray.600"> every {item.recurrence} day/s</Text>
+                        </HStack>
+                        
+                        {/* <Text>{item.formOfMeasurement}</Text>        */}
+                    </VStack>
+                    {toggleEdit && <Button alignSelf="flex-end">Edit</Button>}
                     </HStack>
                 </Box>
             </Center>
@@ -170,13 +170,19 @@ const App = () => {
                 </Text>
             </VStack>
             <Box alignItems="center">
-                <Button
-                variant="ghost"
-                onPress={() => Alert.alert("This is the Edit Habit tab")}>
-                <Text fontSize="xl" fontWeight="bold" color="cyan.600">
-                    Edit
-                </Text>
-                </Button>
+                {toggleEdit ? 
+                  <Button variant="ghost" onPress={() => setToggleEdit(false)}>
+                  <Text fontSize="xl" fontWeight="bold" color="cyan.600">
+                      Cancel
+                   </Text>
+                  </Button>
+                  :
+                  <Button variant="ghost" onPress={() => setToggleEdit(true)}>
+                  <Text fontSize="xl" fontWeight="bold" color="cyan.600">
+                      Edit
+                  </Text> 
+                  </Button>
+                }
             </Box>
             <Box ml={-20} mr={-20} h="10" w="10" alignItems="center">
                 <Button

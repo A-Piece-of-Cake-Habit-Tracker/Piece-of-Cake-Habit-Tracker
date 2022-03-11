@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
 import { View, StatusBar, TextInput, FlatList } from "react-native";
 import * as SQLite from "expo-sqlite";
-import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView} from 'native-base';
+import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, UseTheme} from 'native-base';
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -35,17 +35,13 @@ function Bottom () {
 
 const App = () => {
     const [showModal, setShowModal] = useState(false);
-    const [habitName, setHabitName] = useState("");
-    const [recurrence, setRecurrence] = useState("");
-    const [formOfMeasurement, setFormOfMeasurement] = useState("");
-    const [goal, setGoal] = useState("");
+    const [habit, setHabit] = useState("");
     const [habits, setHabits] = useState([]);
   
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
-        //   `DROP TABLE habits`,
-          `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitName TEXT, recurrence INTEGER, formOfMeasurement INTEGER, goal INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(20))`,
           [],
           (sqlTxn, res) => {
             console.log("table created successfully");
@@ -58,42 +54,25 @@ const App = () => {
     };
   
     const addHabit = () => {
-      if (!habitName) {
+      if (!habit) {
         alert("Enter habit");
         return false;
       }
-
-      const insertSql =
-      "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal) VALUES ('" +
-      habitName +
-      "'," +
-      recurrence +
-      "," +
-      formOfMeasurement +
-      "," +
-      goal +
-      ")";
   
       db.transaction(txn => {
         txn.executeSql(
-          insertSql,
-          [],
+          `INSERT INTO habits (name) VALUES (?)`,
+          [habit],
           (sqlTxn, res) => {
-            console.log(`Added successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
-            // console.log(`Added successfully: ${habitName}`);
+            console.log(`${habit} habit added successfully`);
             getHabits();
-            setHabitName("");
-            setRecurrence("");
-            setFormOfMeasurement("");
-            setGoal("");
+            setHabit("");
           },
           error => {
             console.log("error on adding habit " + error.message);
           },
         );
       });
-
-      setShowModal(false);
     };
   
     const getHabits = () => {
@@ -109,9 +88,9 @@ const App = () => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal });
+                results.push({ id: item.id, name: item.name });
               }
-            
+  
               setHabits(results);
             }
           },
@@ -124,23 +103,16 @@ const App = () => {
   
     const renderHabit = ({ item }) => {
       return (
-        <NativeBaseProvider>
-            <Center>
-                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3}>
-                    <VStack pt={3} pb={3} pr={5} pl={5}>
-                        {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
-                        <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
-                        <HStack alignItems={"flex-start"}>
-                            <Text fontSize="sm" fontWeight="bold" color="cyan.600">{item.goal} time/s</Text>
-                            <Text italic fontSize="sm" fontWeight="medium" color="coolGray.600"> every {item.recurrence} day/s</Text>
-                        </HStack>
-                        {/* <Text>{item.formOfMeasurement}</Text>        */}
-                    </VStack>
-                </Box>
-            </Center>
-            
-            
-        </NativeBaseProvider>
+        <View style={{
+          flexDirection: "row",
+          paddingVertical: 12,
+          paddingHorizontal: 10,
+          borderBottomWidth: 1,
+          borderColor: "#ddd",
+        }}>
+          <Text style={{ marginRight: 9 }}>{item.id}</Text>
+          <Text>{item.name}</Text>
+        </View>
       );
     };
   
@@ -148,6 +120,22 @@ const App = () => {
       await createTables();
       await getHabits();
     }, []);
+
+    const validate = values => {
+        const errors = {};
+      
+        if (!values.habitName) {
+          errors.habitName = 'Required';
+        }
+        if (!values.recurrence) {
+          errors.recurrence = 'Required';
+        }
+        if (!values.goal) {
+          errors.goal = 'Required';
+        }
+      
+        return errors;
+      };
   
     return (
       <NativeBaseProvider>
@@ -199,65 +187,8 @@ const App = () => {
                             <Input
                             width="100%"
                             placeholder="Drink water"
-                            value={habitName}
-                            onChangeText={setHabitName}
-                             />
-                        </FormControl>
-
-                        <FormControl isRequired>
-                            <FormControl.Label>Recurrence</FormControl.Label>
-                            <Input
-                            width="100%"
-                            placeholder=""
-                            value={recurrence}
-                            onChangeText={setRecurrence}
-                             />
-                        </FormControl>
-
-                        {/* <FormControl isRequired>
-                            <FormControl.Label>Form of measurement</FormControl.Label>
-                            <Input
-                            width="100%"
-                            placeholder=""
-                            value={formOfMeasurement}
-                            onChangeText={setFormOfMeasurement}
-                             />
-                        </FormControl> */}
-
-                        <Text mt="3">Form of measurement</Text>
-                        <Radio.Group defaultValue="1" name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
-                            <HStack>
-                            <Radio
-                                value="1"
-                                status= { formOfMeasurement === '1' ? 'checked' : 'unchecked' }
-                                onPress={() => setFormOfMeasurement(1)}
-                                name="formOfMeasurement"
-                                mt={1}
-                                mr={5}
-                                // onPress={setFormOfMeasurement}
-                            >
-                                Increment
-                            </Radio>
-                            <Radio
-                                value="2"
-                                status= { formOfMeasurement === '2' ? 'checked' : 'unchecked' }
-                                onPress={() => setFormOfMeasurement(2)}
-                                name="formOfMeasurement"
-                                mt={1}
-                                // onPress={setFormOfMeasurement}
-                            >
-                                Timer
-                            </Radio>
-                            </HStack>
-                        </Radio.Group>
-
-                        <FormControl isRequired>
-                            <FormControl.Label>Goal</FormControl.Label>
-                            <Input
-                            width="100%"
-                            placeholder=""
-                            value={goal}
-                            onChangeText={setGoal}
+                            value={habit}
+                            onChangeText={setHabit}
                              />
                         </FormControl>
 
@@ -285,16 +216,14 @@ const App = () => {
             />
     
             <Button variant="solid" title="Submit" onPress={addHabit} /> */}
-            {/* <Spacer y={1} /> */}
-            <VStack mt={5} alignItems="center">
-                <FlatList
-                nestedScrollEnabled={true}
-                data={habits}
-                renderItem={renderHabit}
-                key={cat => cat.id}
-                />
-            </VStack>
-            
+    
+            <FlatList
+            data={habits}
+            renderItem={renderHabit}
+            key={cat => cat.id}
+            />
+
+
 
             {/* <Bottom /> */}
         </Center>

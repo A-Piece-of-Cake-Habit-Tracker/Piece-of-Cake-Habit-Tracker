@@ -139,19 +139,26 @@ const App = () => {
       return (
         <NativeBaseProvider>
             <Center>
-                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3}>
+                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row">
+                    <VStack pt={5} pb={4} pr={3} pl={3} bg="tertiary.300" rounded="xl" alignItems="center"> 
+                      <Text fontSize="2xl" fontWeight="medium" color="coolGray.600"> {item.recurrence}</Text>
+                    </VStack>
+                    <Divider my={2} orientation="vertical" bg="transparent"/ >
                     <HStack>
                     <VStack pt={3} pb={3} pr={5} pl={5}>
                         {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
-                        <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                         <HStack alignItems={"flex-start"}>
-                            <Text fontSize="sm" fontWeight="bold" color="cyan.600">{item.goal} time/s</Text>
-                            <Text italic fontSize="sm" fontWeight="medium" color="coolGray.600"> every {item.recurrence} day/s</Text>
+                          <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
+                        </HStack>
+                        <HStack alignItems={"flex-start"}>
+                            <Text fontSize="sm" fontWeight="bold" color="cyan.600">Goal: {item.goal} time/s</Text>
                         </HStack>
                         
                         {/* <Text>{item.formOfMeasurement}</Text>        */}
                     </VStack>
-                    {toggleEdit && <Button alignSelf="flex-end">Edit</Button>}
+                    <VStack pt={3} pb={3} pr={5} pl={5} alignItems="center">
+                      {toggleEdit && <Button alignSelf="flex-end">Edit</Button>}
+                    </VStack>
                     </HStack>
                 </Box>
             </Center>
@@ -176,9 +183,7 @@ const App = () => {
                 <Text fontSize="4xl" fontWeight="bold" color="black">
                     Hey there,
                 </Text>
-                <Text mt={-3} fontSize="4xl" fontWeight="bold" color="black">
-                    Rowena
-                </Text>
+                <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
             </VStack>
             <Box alignItems="center">
                 {toggleEdit ? 
@@ -215,7 +220,7 @@ const App = () => {
                 <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
-                    <Modal.Header>Add a habit</Modal.Header>
+                    <Modal.Header bgColor={"primary.400"} alignItems={"center"}>Add a habit</Modal.Header>
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>
@@ -223,7 +228,7 @@ const App = () => {
                             <FormControl.Label>Name of habit</FormControl.Label>
                             <Input
                             width="100%"
-                            placeholder="Drink water"
+                            placeholder="Habit Name"
                             value={habitName}
                             onChangeText={setHabitName}
                              />
@@ -253,6 +258,7 @@ const App = () => {
                         <Radio.Group defaultValue="1" name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
                             <HStack>
                             <Radio
+                                colorScheme="gray"
                                 value="1"
                                 status= { formOfMeasurement === '1' ? 'checked' : 'unchecked' }
                                 onPress={() => setFormOfMeasurement(1)}
@@ -264,11 +270,13 @@ const App = () => {
                                 Increment
                             </Radio>
                             <Radio
+                                colorScheme="gray"
                                 value="2"
                                 status= { formOfMeasurement === '2' ? 'checked' : 'unchecked' }
                                 onPress={() => setFormOfMeasurement(2)}
                                 name="formOfMeasurement"
                                 mt={1}
+                                mr={5}
                                 // onPress={setFormOfMeasurement}
                             >
                                 Timer

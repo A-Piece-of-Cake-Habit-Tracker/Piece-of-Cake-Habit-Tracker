@@ -2,34 +2,45 @@ import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
 import { View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
-import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView} from 'native-base';
+import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton} from 'native-base';
+import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
 function Bottom () {
-    return <NativeBaseProvider>
-        <HStack width={375} maxWidth="100%" mt={3} space={3} justifyContent="space-evenly">
+  return <NativeBaseProvider>
+      <Box alignItems="center" width="full" height = "100%" bg="cyan.600" m="0">
+        <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
             <Box alignItems="center">
-              <Button
-                variant="solid"
-                colorScheme="secondary"
-                onPress={() => Alert.alert("This is the Main Menu tab")}>
-                <Text fontSize="xl" fontWeight="bold" color="white">
-                  Main Menu
-                </Text>
-              </Button>
+              <IconButton 
+              variant = "unstyled"
+              onPress={() => Alert.alert("This is the Home tab")} 
+              icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
+                  color: "rgb(128,233,250)",
+                  size: "lg"
+                }}_pressed={{
+                  _icon: {
+                    color: "white"
+                  }
+                }}
+            />
             </Box>
             <Box alignItems="center">
-              <Button
-                variant="solid"
-                colorScheme="secondary"
-                onPress={() => Alert.alert("This is the Statistics tab")}>
-                <Text fontSize="xl" fontWeight="bold" color="white">
-                  Statistics
-                </Text>
-              </Button>
+              <IconButton 
+                variant = "unstyled"
+                onPress={() => Alert.alert("This is the Statistics tab")} 
+                icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
+                    color: "rgb(128,233,250)",
+                    size: "lg"
+                  }} _pressed={{
+                     _icon: {
+                        color: "white",
+                      }
+                  }}
+              />
             </Box>
         </HStack>
+      </Box> 
       </NativeBaseProvider>;
   }
 

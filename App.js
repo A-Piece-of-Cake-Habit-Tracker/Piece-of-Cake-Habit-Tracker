@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
-import { View, StatusBar, TextInput, FlatList } from "react-native";
+import { View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView} from 'native-base';
 
@@ -8,7 +8,7 @@ const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
 function Bottom () {
     return <NativeBaseProvider>
-        <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
+        <HStack width={375} maxWidth="100%" mt={3} space={3} justifyContent="space-evenly">
             <Box alignItems="center">
               <Button
                 variant="solid"
@@ -286,17 +286,23 @@ const App = () => {
     
             <Button variant="solid" title="Submit" onPress={addHabit} /> */}
             {/* <Spacer y={1} /> */}
-            <VStack mt={5} alignItems="center">
+            
+        <ScrollView maxW="375" h="485">
+            <Center>
+                <VStack mt={5} alignItems="center">
                 <FlatList
-                nestedScrollEnabled={true}
                 data={habits}
                 renderItem={renderHabit}
                 key={cat => cat.id}
                 />
-            </VStack>
+                </VStack>
+            </Center>
+        </ScrollView>
+                
+            
             
 
-            {/* <Bottom /> */}
+        <Bottom />
         </Center>
       </NativeBaseProvider>
     );

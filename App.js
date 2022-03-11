@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
-import { View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
+import { View, StatusBar, TextInput, FlatList, Alert } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView} from 'native-base';
 
@@ -126,16 +126,22 @@ const App = () => {
       return (
         <NativeBaseProvider>
             <Center>
-                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3}>
-                    <VStack pt={3} pb={3} pr={5} pl={5}>
-                        {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
-                        <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
-                        <HStack alignItems={"flex-start"}>
-                            <Text fontSize="sm" fontWeight="bold" color="cyan.600">{item.goal} time/s</Text>
-                            <Text italic fontSize="sm" fontWeight="medium" color="coolGray.600"> every {item.recurrence} day/s</Text>
-                        </HStack>
-                        {/* <Text>{item.formOfMeasurement}</Text>        */}
-                    </VStack>
+                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} style={{flexWrap: "wrap", overflow: "hidden"}}>
+                    <HStack>
+                        <Box h="20" w="55"
+                        backgroundColor={"cyan.600"} alignItems="center">
+                            
+                        </Box>
+                        <VStack pt={3} pb={3} pr={5} pl={5}>
+                            {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
+                            <Text fontSize="xl" fontWeight="bold" color="muted.900">{item.habitName}</Text>
+                            <HStack alignItems={"flex-start"}>
+                                <Text fontSize="sm" fontWeight="bold" color="cyan.600">{item.goal} time/s</Text>
+                                <Text italic fontSize="sm" fontWeight="medium" color="coolGray.600"> every {item.recurrence} day/s</Text>
+                            </HStack>
+                            {/* <Text>{item.formOfMeasurement}</Text>        */}
+                        </VStack>
+                    </HStack>
                 </Box>
             </Center>
             
@@ -225,7 +231,7 @@ const App = () => {
                         </FormControl> */}
 
                         <Text mt="3">Form of measurement</Text>
-                        <Radio.Group defaultValue="1" name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
+                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
                             <HStack>
                             <Radio
                                 value="1"
@@ -272,20 +278,6 @@ const App = () => {
                 </Modal>
             </Center>
             </HStack>
-
-
-
-            {/* <StatusBar backgroundColor="#222" /> */}
-    
-            {/* <TextInput
-            placeholder="Enter habit"
-            value={habit}
-            onChangeText={setHabit}
-            style={{ marginHorizontal: 8 }}
-            />
-    
-            <Button variant="solid" title="Submit" onPress={addHabit} /> */}
-            {/* <Spacer y={1} /> */}
             
         <ScrollView maxW="375" h="485">
             <Center>
@@ -298,9 +290,6 @@ const App = () => {
                 </VStack>
             </Center>
         </ScrollView>
-                
-            
-            
 
         <Bottom />
         </Center>

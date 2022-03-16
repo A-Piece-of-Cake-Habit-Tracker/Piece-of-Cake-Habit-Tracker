@@ -49,6 +49,7 @@ const App = () => {
     const [habitName, setHabitName] = useState("");
     const [recurrence, setRecurrence] = useState("");
     const [formOfMeasurement, setFormOfMeasurement] = useState("");
+    const [id, setHabitId] = useState(0);
     const [goal, setGoal] = useState("");
     const [habits, setHabits] = useState([]);
     const [toggleEdit, setToggleEdit] = useState(false);
@@ -253,6 +254,57 @@ const App = () => {
       setShowModal(false);
     };
   
+    const editHabit = () => {
+        const updateSql =
+        "UPDATE habits SET habitName='" +
+        habitName +
+        "', recurrence='" +
+        recurrence +
+        "', formOfMeasurement=" +
+        formOfMeasurement +
+        ", goal='" +
+        goal +
+        "' WHERE id="
+        + id;
+    
+        db.transaction(txn => {
+          txn.executeSql(
+            updateSql,
+            [],
+            (sqlTxn, res) => {
+              console.log(`Edited successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
+              // console.log(`Added successfully: ${habitName}`);
+              
+              
+              getHabits();
+              setHabitName("");
+              setRecurrence("");
+              setFormOfMeasurement("");
+              setGoal("");
+            },
+            error => {
+              console.log("error on editing habit " + error.message);
+            },
+          );
+        });
+  
+        setShowModal(false);
+      };
+    
+      const loadEdit = (editID) => {
+        setHabitId(editID);
+        for (let index = 0; index < habits.length; index++) {
+          if(editID == habits[index].id){
+            setHabitName(habits[index].habitName);
+            setRecurrence((habits[index].recurrence).toString());
+            setFormOfMeasurement(habits[index].formOfMeasurement);
+            setGoal((habits[index].goal).toString());
+            console.log(`loaded ${habits[index].habitName} ${habits[index].recurrence} ${habits[index].formOfMeasurement} ${habits[index].goal}`)
+            break;
+          }        
+        }
+      }
+
     const getHabits = () => {
       db.transaction(txn => {
         txn.executeSql(
@@ -341,7 +393,10 @@ const App = () => {
                               variant="ghost"
                               bgColor={'green.400'}
                               rounded="full"
-                              onPress={() => Alert.alert("This is the Edit Form")} 
+                              onPress={() => {
+                                setShowModal(true); 
+                                loadEdit(item.id)
+                              }} 
                               icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
                                   color: "white",
                                   size: "sm"
@@ -423,10 +478,20 @@ const App = () => {
             </Box>
             }
             <Center>
-                <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
+                <Modal name="addHabitModal" isOpen={showModal} onClose={() => 
+                {
+                    setShowModal(false);
+                    setHabitName("");
+                    setRecurrence("");
+                    setFormOfMeasurement("");
+                    setGoal("");
+                }
+                }>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
-                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"}><Text fontWeight="bold" color="white">Add a habit</Text></Modal.Header>
+                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"}><Text fontWeight="bold" color="white">
+                        {toggleEdit ? "Edit habit":"Add a habit"}    
+                    </Text></Modal.Header>
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>
@@ -463,7 +528,8 @@ const App = () => {
 
                         <FormControl isRequired>
                             <FormControl.Label>Form of measurement</FormControl.Label>
-                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
+                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"
+                        defaultValue={(toggleEdit && formOfMeasurement==2) ? "2" : "1"}>
                             <HStack>
                             <Radio
                                 colorScheme="gray"
@@ -504,7 +570,7 @@ const App = () => {
                              />
                         </FormControl>
 
-                        <Button variant="outline" onPress={addHabit} colorScheme="pink">
+                        <Button variant="outline" onPress={toggleEdit ? editHabit : addHabit} colorScheme="pink">
                             Submit
                         </Button>
 

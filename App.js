@@ -13,7 +13,7 @@ const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
 function Bottom () {
   return <NativeBaseProvider>
-      <Box flexDirection="row" alignItems="center" width="full" height = "100%" bg="cyan.600" m="0">
+      <Box flexDirection="row" alignItems="center" width="full" height = "100%" style={{backgroundColor: "#10BCE1"}} m="0">
         <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
             <Box alignItems="center">
               <IconButton 
@@ -490,7 +490,10 @@ const App = () => {
                   </Button>
                   :
                   <Button variant="ghost" onPress={() => setToggleEdit(true)}>
-                  <Text fontSize="xl" fontWeight="bold" color="cyan.600">
+                  <Text fontSize="xl" fontWeight="bold"
+                    style={{
+                      color: "#10BCE1"
+                    }}>
                       Edit
                   </Text> 
                   </Button>
@@ -506,7 +509,10 @@ const App = () => {
                 shadow={3}
                 rounded="full"
                 onPress={() => setShowModal(true)}>
-                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="cyan.600">
+                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold"
+                  style={{
+                    color: "#10BCE1"
+                  }}>
                     +
                 </Text>
                 </Button>
@@ -516,7 +522,13 @@ const App = () => {
                 <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
-                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"}><Text fontWeight="bold" color="white">Add a habit</Text></Modal.Header>
+                    <Modal.Header
+                      style={{
+                        backgroundColor: "#10BCE1"
+                      }}
+                      alignItems={"center"}>
+                      <Text fontWeight="bold" color="white">Add a habit</Text>
+                    </Modal.Header>
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>

@@ -71,10 +71,67 @@ const App = () => {
   
 
     const addHabit = () => {
+      const incomplete = []
+
+
       if (!habitName) {
-        alert("Enter habit");
+        incomplete.push("name of habit")
+      }
+
+      if (!recurrence) {
+        incomplete.push("recurrence")
+      }
+
+      if (!formOfMeasurement) {
+        incomplete.push("form of measurement")
+      }
+
+      if (!goal) {
+        incomplete.push("goal")
+      }
+
+      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+        var str = "Please enter the ";
+        for(var i = 0; i < incomplete.length; i++) {
+          if (incomplete.length == 1){
+            str += incomplete[i] + ".";
+          }
+          else if (incomplete.length != 1 && i == incomplete.length - 1){
+            str += "and " + incomplete[i] + ".";
+          } else {
+            str += incomplete[i] + ", ";
+          }
+        }
+        console.log(str);
+        alert(str);
         return false;
       }
+
+
+      if (!(/^[0-9]*$/.test(recurrence))){
+        console.log("2 Please enter a valid integer for the recurrence.");
+        alert("Please enter a valid integer for the recurrence.");
+        return false;
+      }
+
+      if (!(/^[0-9]*$/.test(goal))){
+        console.log("2 Please enter a valid integer for the goal.");
+        alert("Please enter a valid integer for the goal.");
+        return false;
+      }
+      
+
+      // if (Number.isInteger(recurrence)) {
+      //   console.log("Please enter an integer for the recurrence.");
+      //   alert("Please enter an integer for the recurrence.");
+      //   return false;
+      // }
+
+      // if (Number.isInteger(goal)) {
+      //   console.log("Please enter an integer for the goal.");
+      //   alert("Please enter an integer for the goal.");
+      //   return false;
+      // }
 
       const insertSql =
       "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal) VALUES ('" +
@@ -220,7 +277,7 @@ const App = () => {
                 <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
-                    <Modal.Header bgColor={"primary.400"} alignItems={"center"}>Add a habit</Modal.Header>
+                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"} textColor="white">Add a habit</Modal.Header>
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>
@@ -228,7 +285,7 @@ const App = () => {
                             <FormControl.Label>Name of habit</FormControl.Label>
                             <Input
                             width="100%"
-                            placeholder="Habit Name"
+                            placeholder="Name of habit"
                             value={habitName}
                             onChangeText={setHabitName}
                              />
@@ -238,8 +295,9 @@ const App = () => {
                             <FormControl.Label>Recurrence</FormControl.Label>
                             <Input
                             width="100%"
-                            placeholder=""
+                            placeholder="Recurrence"
                             value={recurrence}
+                            keyboardType="numeric"
                             onChangeText={setRecurrence}
                              />
                         </FormControl>
@@ -255,7 +313,7 @@ const App = () => {
                         </FormControl> */}
 
                         <Text mt="3">Form of measurement</Text>
-                        <Radio.Group defaultValue="1" name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
+                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
                             <HStack>
                             <Radio
                                 colorScheme="gray"
@@ -288,8 +346,9 @@ const App = () => {
                             <FormControl.Label>Goal</FormControl.Label>
                             <Input
                             width="100%"
-                            placeholder=""
+                            placeholder="Goal"
                             value={goal}
+                            keyboardType="numeric"
                             onChangeText={setGoal}
                              />
                         </FormControl>

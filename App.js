@@ -103,7 +103,11 @@ const App = () => {
           }
         }
         console.log(str);
-        alert(str);
+        Alert.alert(
+          "Incomplete habit details",
+          str,
+          [{text: 'OK', style: 'destructive'}]
+        );
         return false;
       }
 
@@ -120,19 +124,6 @@ const App = () => {
         return false;
       }
       
-
-      // if (Number.isInteger(recurrence)) {
-      //   console.log("Please enter an integer for the recurrence.");
-      //   alert("Please enter an integer for the recurrence.");
-      //   return false;
-      // }
-
-      // if (Number.isInteger(goal)) {
-      //   console.log("Please enter an integer for the goal.");
-      //   alert("Please enter an integer for the goal.");
-      //   return false;
-      // }
-
       const insertSql =
       "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal) VALUES ('" +
       habitName +
@@ -287,7 +278,7 @@ const App = () => {
                 <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
-                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"} textColor="white">Add a habit</Modal.Header>
+                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"}><Text fontWeight="bold" color="white">Add a habit</Text></Modal.Header>
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>
@@ -322,7 +313,8 @@ const App = () => {
                              />
                         </FormControl> */}
 
-                        <Text mt="3">Form of measurement</Text>
+                        <FormControl isRequired>
+                            <FormControl.Label>Form of measurement</FormControl.Label>
                         <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
                             <HStack>
                             <Radio
@@ -351,6 +343,7 @@ const App = () => {
                             </Radio>
                             </HStack>
                         </Radio.Group>
+                        </FormControl>
 
                         <FormControl isRequired>
                             <FormControl.Label>Goal</FormControl.Label>

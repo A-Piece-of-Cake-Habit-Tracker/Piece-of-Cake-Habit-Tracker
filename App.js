@@ -3,7 +3,11 @@ import React, { useEffect, useState } from "react";
 import { Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton} from 'native-base';
-import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
+
+import {LogBox} from 'react-native';
+
+LogBox.ignoreLogs(['NativeBase:']);
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -50,14 +54,105 @@ const App = () => {
     const [recurrence, setRecurrence] = useState("");
     const [formOfMeasurement, setFormOfMeasurement] = useState("");
     const [goal, setGoal] = useState("");
+    const [progress, setProgress] = useState("");
     const [habits, setHabits] = useState([]);
     const [toggleEdit, setToggleEdit] = useState(false);
+
+    const [date, setDate] = useState(null); //ADDED
+
+    //useEffect added
+    useEffect(() => {
+      let today = new Date();
+      let month=today.getMonth()+1;
+      let m= 'Jan';
+      if (month==2)
+      {
+        m='Jan';
+      }
+      else if (month==2)
+      {
+        m='Feb';
+      }
+      else if (month==3)
+      {
+        m='Mar';
+      }
+      else if (month==4)
+      {
+        m='Apr';
+      }
+      else if (month==5)
+      {
+        m='May';
+      }
+      else if (month==6)
+      {
+        m='June';
+      }
+      else if (month==7)
+      {
+        m='July';
+      }
+      else if (month==8)
+      {
+        m='Aug';
+      }
+      else if (month==9)
+      {
+        m='Sept';
+      }
+      else if (month==10)
+      {
+        m='Oct';
+      }
+      else if (month==11)
+      {
+        m='Nov';
+      }
+      else if (month==12)
+      {
+        m='Dec';
+      }
+      let day=today.getDay();
+      let d= 'Sun';
+      if (day==0)
+      {
+        d='Sun';
+      }
+      else if (day==1)
+      {
+        d='Mon';
+      }
+      else if (day==2)
+      {
+        d='Tue';
+      }
+      else if (day==3)
+      {
+        d='Wed';
+      }
+      else if (day==4)
+      {
+        d='Thurs';
+      }
+      else if (day==5)
+      {
+        d='Fri';
+      }
+      else if (day==6)
+      {
+        d='Sat';
+      }
+      let date = d+ ', '+ m + ' '+ today.getDate();
+      setDate(date);
+    }, []);
+
   
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
-        //   `DROP TABLE habits`,
-          `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitName TEXT, recurrence INTEGER, formOfMeasurement INTEGER, goal INTEGER)`,
+          // `DROP TABLE habits`,
+          `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitName TEXT, recurrence INTEGER, formOfMeasurement INTEGER, goal INTEGER, progress INTEGER)`,
           [],
           (sqlTxn, res) => {
             console.log("table created successfully");
@@ -131,9 +226,11 @@ const App = () => {
         );
         return false;
       }
+
+      const progress = 0;
       
       const insertSql =
-      "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal) VALUES ('" +
+      "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal,progress) VALUES ('" +
       habitName +
       "'," +
       recurrence +
@@ -141,14 +238,18 @@ const App = () => {
       formOfMeasurement +
       "," +
       goal +
+      "," +
+      progress +
       ")";
+
+      console.log(insertSql)
   
       db.transaction(txn => {
         txn.executeSql(
           insertSql,
           [],
           (sqlTxn, res) => {
-            console.log(`Added successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
+            console.log(`Added successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal} ${progress}`);
             // console.log(`Added successfully: ${habitName}`);
             getHabits();
             setHabitName("");
@@ -178,7 +279,7 @@ const App = () => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal });
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress });
               }
             
               setHabits(results);
@@ -190,14 +291,66 @@ const App = () => {
         );
       });
     };
-  
+
+    function updateHabit(item, action) {
+      // console.log(item.recurrence++);
+      if (action == "inc") {
+        if (item.progress < item.goal) {
+          setRecurrence(item.progress++);
+        }
+      }
+      else {
+        if (item.progress != 0) {
+          setRecurrence(item.progress--);
+        }
+      }
+      
+      console.log("updating: " + item.id)
+
+      const updateSql =
+      "UPDATE habits SET habitName = '" +
+      item.habitName +
+      "', recurrence=" +
+      item.recurrence +
+      ",formOfMeasurement=" +
+      item.formOfMeasurement +
+      ",goal=" +
+      item.goal +
+      ",progress=" +
+      item.progress +
+      " WHERE id=" +
+      item.id;
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          updateSql,
+          [],
+          (sqlTxn, res) => {
+            console.log("habit updated successfully");
+          },
+          error => {
+            console.log("error on updating habit " + error.message);
+          },
+        );
+      });
+    }
+
     const renderHabit = ({ item }) => {
+      console.log(item)
       return (
         <NativeBaseProvider>
             <Center>
                 <HStack w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row" style={{flexWrap: "wrap", overflow: "hidden"}}>
-                    <VStack h="20" w="55" bg="cyan.600" alignItems="center" justifyContent="center"> 
-                      <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="medium" color="white"> {item.recurrence}</Text>
+                    <VStack h="20" w="55"
+                    // bg="cyan.600"
+                    style={
+                      item.progress === item.goal?
+                      {backgroundColor: "#08E17C"}
+                      : {backgroundColor: "#10BCE1"}
+                    }
+                    alignItems="center"
+                    justifyContent="center"> 
+                      <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="bold" color="white"> {item.progress} </Text>
                     </VStack>
                     <Divider my={2} orientation="vertical" bg="transparent"/ >
                     <VStack w="250" flexDirection="row" justifyContent={"space-between"}>
@@ -207,7 +360,16 @@ const App = () => {
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
                           <HStack alignItems={"flex-start"}>
-                              <Text fontSize="sm" fontWeight="bold" color="cyan.600">Goal: {item.goal} time/s</Text>
+                              <Text fontSize="sm"
+                              fontWeight="bold"
+                              // color="cyan.600"
+                              style={
+                                item.progress === item.goal ?
+                                {color: "#08E17C"}
+                                : {color: "#10BCE1"}
+                              }>
+                                Goal: {item.goal} time/s
+                              </Text>
                           </HStack>
                           
                           {/* <Text>{item.formOfMeasurement}</Text>        */}
@@ -220,11 +382,16 @@ const App = () => {
                                 h="10" w="10"
                                 alignItems="center"
                                 variant="ghost"
-                                bgColor={'green.400'}
+                                // bgColor={'green.400'}
+                                style={
+                                  item.progress === item.goal ?
+                                  {backgroundColor: "gray"}
+                                  : {backgroundColor: "#08E17C"}
+                                }
                                 // shadow={3}
                                 rounded="full">
                                 <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white"
-                                onPress={() => setRecurrence(item.recurrence++)}>
+                                onPress={() => updateHabit(item, "inc")}>
                                     +
                                 </Text>
                                 </Button>
@@ -232,11 +399,14 @@ const App = () => {
                                 h="10" w="10" ml={2}
                                 alignItems="center"
                                 variant="ghost"
-                                bgColor={'danger.500'}
-                                // shadow={3}
+                                style={
+                                  item.progress === 0 ?
+                                  {backgroundColor: "gray"}
+                                  : {backgroundColor: "#FB6767"}
+                                }
                                 rounded="full">
                                 <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white"
-                                onPress={() => setRecurrence(item.recurrence--)}>
+                                onPress={() => updateHabit(item, "dec")}>
                                     -
                                 </Text>
                                 </Button>
@@ -246,12 +416,40 @@ const App = () => {
                         }
                         {toggleEdit &&
                           <NativeBaseProvider>
-                            <Button color="cyan.600">
-                            Edit
-                            </Button>
-                            <Button colorScheme="secondary">
-                            Delete
-                            </Button>
+                            <HStack h="20" alignItems={"center"} justifyContent={"center"}>
+                              <IconButton 
+                              h="10" w="10"
+                              alignItems="center"
+                              variant="ghost"
+                              bgColor={'green.400'}
+                              rounded="full"
+                              onPress={() => Alert.alert("This is the Edit Form")} 
+                              icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
+                                  color: "white",
+                                  size: "20px",
+                                  marginTop: "2px",
+                                  textAlign: "center"
+                                }} 
+                              />
+                              <IconButton 
+                              h="10" w="10" ml={2}
+                              alignItems="center"
+                              variant="ghost"
+                              style={{
+                                backgroundColor: "#FB6767"
+                              }}
+                              rounded="full"
+                              onPress={() => Alert.alert("This is the Delete Alert")} 
+                              icon={<Icon as={Ionicons} name="trash-bin-sharp" />} _icon={{
+                                  color: "white",
+                                  size: "20px",
+                                  marginTop: "2px",
+                                  textAlign: "center"
+                                  // height: 5,
+                                  // width: 5
+                                }} 
+                              />
+                            </HStack>
                           </NativeBaseProvider>
                         }
                         
@@ -281,6 +479,7 @@ const App = () => {
                     Hey there,
                 </Text>
                 <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
             </VStack>
             <Box alignItems="center">
                 {toggleEdit ? 

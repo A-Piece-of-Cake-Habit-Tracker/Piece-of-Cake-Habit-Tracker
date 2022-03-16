@@ -52,7 +52,95 @@ const App = () => {
     const [goal, setGoal] = useState("");
     const [habits, setHabits] = useState([]);
     const [toggleEdit, setToggleEdit] = useState(false);
-  
+    const [date, setDate] = useState(null); //ADDED
+
+    //useEffect added
+    useEffect(() => {
+      let today = new Date();
+      let month=today.getMonth()+1;
+      let m= 'Jan';
+      if (month==2)
+      {
+        m='Jan';
+      }
+      else if (month==2)
+      {
+        m='Feb';
+      }
+      else if (month==3)
+      {
+        m='Mar';
+      }
+      else if (month==4)
+      {
+        m='Apr';
+      }
+      else if (month==5)
+      {
+        m='May';
+      }
+      else if (month==6)
+      {
+        m='June';
+      }
+      else if (month==7)
+      {
+        m='July';
+      }
+      else if (month==8)
+      {
+        m='Aug';
+      }
+      else if (month==9)
+      {
+        m='Sept';
+      }
+      else if (month==10)
+      {
+        m='Oct';
+      }
+      else if (month==11)
+      {
+        m='Nov';
+      }
+      else if (month==12)
+      {
+        m='Dec';
+      }
+      let day=today.getDay();
+      let d= 'Sun';
+      if (day==0)
+      {
+        d='Sun';
+      }
+      else if (day==1)
+      {
+        d='Mon';
+      }
+      else if (day==2)
+      {
+        d='Tue';
+      }
+      else if (day==3)
+      {
+        d='Wed';
+      }
+      else if (day==4)
+      {
+        d='Thurs';
+      }
+      else if (day==5)
+      {
+        d='Fri';
+      }
+      else if (day==6)
+      {
+        d='Sat';
+      }
+      let date = d+ ', '+ m + ' '+ today.getDate();
+      setDate(date);
+    }, []);
+
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
@@ -281,6 +369,7 @@ const App = () => {
                     Hey there,
                 </Text>
                 <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                <Text fontSize="lg" color="gray.400">{date}</Text>
             </VStack>
             <Box alignItems="center">
                 {toggleEdit ? 

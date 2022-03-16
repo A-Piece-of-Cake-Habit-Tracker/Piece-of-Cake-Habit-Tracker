@@ -196,28 +196,32 @@ const App = () => {
       return (
         <NativeBaseProvider>
             <Center>
-                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row" style={{flexWrap: "wrap", overflow: "hidden"}}>
+                <HStack w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row" style={{flexWrap: "wrap", overflow: "hidden"}}>
                     <VStack h="20" w="55" bg="cyan.600" alignItems="center" justifyContent="center"> 
                       <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="medium" color="white"> {item.recurrence}</Text>
                     </VStack>
                     <Divider my={2} orientation="vertical" bg="transparent"/ >
-                    <HStack>
-                    <VStack pt={3} pb={3} pr={5} pl={5}>
-                        {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
-                        <HStack alignItems={"flex-start"}>
-                          <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
-                        </HStack>
-                        <HStack alignItems={"flex-start"}>
-                            <Text fontSize="sm" fontWeight="bold" color="cyan.600">Goal: {item.goal} time/s</Text>
-                        </HStack>
-                        
-                        {/* <Text>{item.formOfMeasurement}</Text>        */}
+                    <VStack w="250" flexDirection="row" justifyContent={"space-between"}>
+                      <VStack pt={3} pb={3} pr={5} pl={5}>
+                          {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
+                          <HStack alignItems={"flex-start"}>
+                            <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
+                          </HStack>
+                          <HStack alignItems={"flex-start"}>
+                              <Text fontSize="sm" fontWeight="bold" color="cyan.600">Goal: {item.goal} time/s</Text>
+                          </HStack>
+                          
+                          {/* <Text>{item.formOfMeasurement}</Text>        */}
+                      </VStack>
+                      <VStack h="20" w="55" justifyContent={"center"}>
+                        {toggleEdit &&
+                          <Button color="cyan.600">
+                            Edit
+                          </Button>
+                        }
+                      </VStack>
                     </VStack>
-                    <VStack pt={3} pb={3} pr={5} pl={5} alignItems="center">
-                      {toggleEdit && <Button alignSelf="flex-end">Edit</Button>}
-                    </VStack>
-                    </HStack>
-                </Box>
+                </HStack>
             </Center>
             
             

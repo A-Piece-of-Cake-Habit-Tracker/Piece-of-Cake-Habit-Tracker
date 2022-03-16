@@ -220,7 +220,7 @@ const App = () => {
                                 h="10" w="10"
                                 alignItems="center"
                                 variant="ghost"
-                                bgColor={'green.500'}
+                                bgColor={'green.400'}
                                 // shadow={3}
                                 rounded="full">
                                 <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white">

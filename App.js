@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton} from 'native-base';
-import { MaterialCommunityIcons, Entypo } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -23,7 +23,7 @@ function Bottom () {
                     color: "white"
                   }
                 }}
-            />
+              />
             </Box>
             <Box alignItems="center">
               <IconButton 
@@ -334,12 +334,32 @@ const App = () => {
                         }
                         {toggleEdit &&
                           <NativeBaseProvider>
-                            <Button color="cyan.600">
-                            Edit
-                            </Button>
-                            <Button colorScheme="secondary">
-                            Delete
-                            </Button>
+                            <HStack h="20" alignItems={"center"} justifyContent={"center"}>
+                              <IconButton 
+                              h="10" w="10"
+                              alignItems="center"
+                              variant="ghost"
+                              bgColor={'green.400'}
+                              rounded="full"
+                              onPress={() => Alert.alert("This is the Edit Form")} 
+                              icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
+                                  color: "white",
+                                  size: "sm"
+                                }} 
+                              />
+                              <IconButton 
+                              h="10" w="10" ml={2}
+                              alignItems="center"
+                              variant="ghost"
+                              bgColor={'danger.500'}
+                              rounded="full"
+                              onPress={() => Alert.alert("This is the Delete Alert")} 
+                              icon={<Icon as={Ionicons} name="trash-bin-sharp" />} _icon={{
+                                  color: "white",
+                                  size: "sm"
+                                }} 
+                              />
+                            </HStack>
                           </NativeBaseProvider>
                         }
                         

@@ -180,7 +180,7 @@ const App = () => {
         {/* ===================================== HEADER ===================================== */}
             <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
             <VStack pl={2} alignItems="flex-start" >
-                <Text fontSize="4xl" fontWeight="bold" color="black">
+                <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
                     Hey there,
                 </Text>
                 <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>

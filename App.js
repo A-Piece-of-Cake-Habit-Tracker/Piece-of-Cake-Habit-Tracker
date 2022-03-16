@@ -213,11 +213,17 @@ const App = () => {
                           
                           {/* <Text>{item.formOfMeasurement}</Text>        */}
                       </VStack>
-                      <VStack h="20" w="55" justifyContent={"center"}>
+                      <VStack h="20" w="90" justifyContent={"center"}>
                         {toggleEdit &&
-                          <Button color="cyan.600">
+                          <NativeBaseProvider>
+                            <Button color="cyan.600">
                             Edit
-                          </Button>
+                            </Button>
+                            <Button colorScheme="secondary">
+                            Delete
+                            </Button>
+                          </NativeBaseProvider>
+                          
                         }
                       </VStack>
                     </VStack>

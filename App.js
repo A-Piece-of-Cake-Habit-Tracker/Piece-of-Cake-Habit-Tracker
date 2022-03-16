@@ -223,7 +223,8 @@ const App = () => {
                                 bgColor={'green.400'}
                                 // shadow={3}
                                 rounded="full">
-                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white">
+                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white"
+                                onPress={() => setRecurrence(item.recurrence++)}>
                                     +
                                 </Text>
                                 </Button>
@@ -234,7 +235,8 @@ const App = () => {
                                 bgColor={'danger.500'}
                                 // shadow={3}
                                 rounded="full">
-                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white">
+                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white"
+                                onPress={() => setRecurrence(item.recurrence--)}>
                                     -
                                 </Text>
                                 </Button>

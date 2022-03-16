@@ -9,7 +9,7 @@ const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
 function Bottom () {
   return <NativeBaseProvider>
-      <Box alignItems="center" width="full" height = "100%" bg="cyan.600" m="0">
+      <Box flexDirection="row" alignItems="center" width="full" height = "100%" bg="cyan.600" m="0">
         <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
             <Box alignItems="center">
               <IconButton 
@@ -114,13 +114,21 @@ const App = () => {
 
       if (!(/^[0-9]*$/.test(recurrence))){
         console.log("2 Please enter a valid integer for the recurrence.");
-        alert("Please enter a valid integer for the recurrence.");
+        Alert.alert(
+          "Invalid habit details",
+          "Please enter a valid integer for the recurrence.",
+          [{text: 'OK', style: 'destructive'}]
+        );
         return false;
       }
 
       if (!(/^[0-9]*$/.test(goal))){
         console.log("2 Please enter a valid integer for the goal.");
-        alert("Please enter a valid integer for the goal.");
+        Alert.alert(
+          "Invalid habit details",
+          "Please enter a valid integer for the goal.",
+          [{text: 'OK', style: 'destructive'}]
+        );
         return false;
       }
       
@@ -205,6 +213,35 @@ const App = () => {
                           {/* <Text>{item.formOfMeasurement}</Text>        */}
                       </VStack>
                       <VStack h="20" w="90" justifyContent={"center"}>
+                        {!toggleEdit &&
+                          <NativeBaseProvider>
+                            <HStack h="20" alignItems={"center"} justifyContent={"center"}>
+                                <Button
+                                h="10" w="10"
+                                alignItems="center"
+                                variant="ghost"
+                                bgColor={'green.500'}
+                                // shadow={3}
+                                rounded="full">
+                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white">
+                                    +
+                                </Text>
+                                </Button>
+                                <Button
+                                h="10" w="10" ml={2}
+                                alignItems="center"
+                                variant="ghost"
+                                bgColor={'danger.500'}
+                                // shadow={3}
+                                rounded="full">
+                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white">
+                                    -
+                                </Text>
+                                </Button>
+                            </HStack>
+                          </NativeBaseProvider>
+                          
+                        }
                         {toggleEdit &&
                           <NativeBaseProvider>
                             <Button color="cyan.600">
@@ -214,8 +251,8 @@ const App = () => {
                             Delete
                             </Button>
                           </NativeBaseProvider>
-                          
                         }
+                        
                       </VStack>
                     </VStack>
                 </HStack>
@@ -382,22 +419,19 @@ const App = () => {
             <Button variant="solid" title="Submit" onPress={addHabit} /> */}
             {/* <Spacer y={1} /> */}
             
-        <ScrollView maxW="375" h="485">
-            <Center>
-                <VStack mt={5} alignItems="center">
-                <FlatList
-                data={habits}
-                renderItem={renderHabit}
-                key={cat => cat.id}
-                />
-                </VStack>
-            </Center>
-        </ScrollView>
-                
-            
-            
-
-        <Bottom />
+          <ScrollView maxW="375" h="485">
+              <Center>
+                  <VStack mt={5} alignItems="center">
+                  <FlatList
+                  data={habits}
+                  renderItem={renderHabit}
+                  key={cat => cat.id}
+                  />
+                  </VStack>
+              </Center>
+          </ScrollView>
+          
+          <Bottom />
         </Center>
       </NativeBaseProvider>
     );

@@ -139,9 +139,9 @@ const App = () => {
       return (
         <NativeBaseProvider>
             <Center>
-                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row">
-                    <VStack pt={5} pb={4} pr={3} pl={3} bg="tertiary.300" rounded="xl" alignItems="center"> 
-                      <Text fontSize="2xl" fontWeight="medium" color="coolGray.600"> {item.recurrence}</Text>
+                <Box w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row" style={{flexWrap: "wrap", overflow: "hidden"}}>
+                    <VStack h="20" w="55" bg="cyan.600" alignItems="center" justifyContent="center"> 
+                      <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="medium" color="white"> {item.recurrence}</Text>
                     </VStack>
                     <Divider my={2} orientation="vertical" bg="transparent"/ >
                     <HStack>

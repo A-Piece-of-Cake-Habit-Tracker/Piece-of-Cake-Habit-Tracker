@@ -2,15 +2,12 @@ import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
 import { Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
-import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton} from 'native-base';
+import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog} from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
-<<<<<<< HEAD
 
 import {LogBox} from 'react-native';
 
 LogBox.ignoreLogs(['NativeBase:']);
-=======
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -61,11 +58,11 @@ const App = () => {
     const [progress, setProgress] = useState("");
     const [habits, setHabits] = useState([]);
     const [toggleEdit, setToggleEdit] = useState(false);
-<<<<<<< HEAD
-
-=======
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
     const [date, setDate] = useState(null); //ADDED
+    const [isOpen, setIsOpen] = useState(false); //FOR DELETE
+    const onClose = () => setIsOpen(false); //FOR DELETE
+    const cancelRef = React.useRef(null); //FOR DELETE        
+
 
     //useEffect added
     useEffect(() => {
@@ -154,10 +151,7 @@ const App = () => {
       setDate(date);
     }, []);
 
-<<<<<<< HEAD
   
-=======
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
@@ -327,6 +321,39 @@ const App = () => {
         }
       }
 
+      function deleteHabit (){
+        const deleteSql = "DELETE FROM habits WHERE id=" + id;
+        console.log(deleteSql)
+        db.transaction(txn => {
+          txn.executeSql(
+            deleteSql,
+            [],
+            (sqlTxn, res) => {
+              console.log(`Deleted successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
+            },
+            error => {
+              console.log("error on deleting habit " + error.message);
+            },
+          );
+        });
+        setIsOpen(false);
+        getHabits();
+      };
+
+      const loadDelete = (deleteID) => {
+        setHabitId(deleteID);
+        for (let index = 0; index < habits.length; index++) {
+          if(deleteID == habits[index].id){
+            setHabitName(habits[index].habitName);
+            setRecurrence((habits[index].recurrence).toString());
+            setFormOfMeasurement(habits[index].formOfMeasurement);
+            setGoal((habits[index].goal).toString());
+            console.log(`loaded ${habits[index].habitName} ${habits[index].recurrence} ${habits[index].formOfMeasurement} ${habits[index].goal}`)
+            break;
+          }        
+        }
+      }
+
     const getHabits = () => {
       db.transaction(txn => {
         txn.executeSql(
@@ -413,7 +440,7 @@ const App = () => {
                     justifyContent="center"> 
                       <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="bold" color="white"> {item.progress} </Text>
                     </VStack>
-                    <Divider my={2} orientation="vertical" bg="transparent"/ >
+                    <Divider my={2} orientation="vertical" bg="transparent"/>
                     <VStack w="250" flexDirection="row" justifyContent={"space-between"}>
                       <VStack pt={3} pb={3} pr={5} pl={5}>
                           {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
@@ -484,48 +511,35 @@ const App = () => {
                               variant="ghost"
                               bgColor={'green.400'}
                               rounded="full"
-<<<<<<< HEAD
-                              onPress={() => Alert.alert("This is the Edit Form")} 
-                              icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
-                                  color: "white",
-                                  size: "20px",
-                                  marginTop: "2px",
-                                  textAlign: "center"
-=======
                               onPress={() => {
                                 setShowModal(true); 
                                 loadEdit(item.id)
                               }} 
                               icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
                                   color: "white",
-                                  size: "sm"
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
+                                  size: "20px",
+                                  marginTop: "2px",
+
                                 }} 
                               />
                               <IconButton 
                               h="10" w="10" ml={2}
                               alignItems="center"
                               variant="ghost"
-<<<<<<< HEAD
                               style={{
                                 backgroundColor: "#FB6767"
                               }}
-=======
-                              bgColor={'danger.500'}
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
                               rounded="full"
-                              onPress={() => Alert.alert("This is the Delete Alert")} 
+                              onPress={() => {
+                                setIsOpen(true);
+                                loadDelete(item.id)
+                              }} 
                               icon={<Icon as={Ionicons} name="trash-bin-sharp" />} _icon={{
                                   color: "white",
-<<<<<<< HEAD
                                   size: "20px",
                                   marginTop: "2px",
-                                  textAlign: "center"
-                                  // height: 5,
-                                  // width: 5
-=======
-                                  size: "sm"
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
+                                  height: 5,
+                                  width: 5
                                 }} 
                               />
                             </HStack>
@@ -558,11 +572,7 @@ const App = () => {
                     Hey there,
                 </Text>
                 <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
-<<<<<<< HEAD
                 <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
-=======
-                <Text fontSize="lg" color="gray.400">{date}</Text>
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
             </VStack>
             <Box alignItems="center">
                 {toggleEdit ? 
@@ -613,19 +623,9 @@ const App = () => {
                 }>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
-<<<<<<< HEAD
-                    <Modal.Header
-                      style={{
-                        backgroundColor: "#10BCE1"
-                      }}
-                      alignItems={"center"}>
-                      <Text fontWeight="bold" color="white">Add a habit</Text>
-                    </Modal.Header>
-=======
                     <Modal.Header bgColor={"cyan.500"} alignItems={"center"}><Text fontWeight="bold" color="white">
                         {toggleEdit ? "Edit habit":"Add a habit"}    
                     </Text></Modal.Header>
->>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>
@@ -716,6 +716,28 @@ const App = () => {
             </Center>
             </HStack>
 
+            {/* Delete Alert Dialog */}
+            <Center>
+              <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                <AlertDialog.Content>
+                  <AlertDialog.Header bgColor={"danger.500"} alignItems={"center"}><Text fontWeight="bold" color="white">Delete a Habit</Text></AlertDialog.Header>
+                  <AlertDialog.Body>
+                    Are you sure you want to delete this habit?
+                  </AlertDialog.Body>
+                  <AlertDialog.Footer>
+                    <Button.Group space={2}>
+                      <Button colorScheme='danger' onPress={deleteHabit}>
+                        Delete
+                      </Button>
+                      <Button variant='subtle' bgColor ={"rgb(168,182,196)"} onPress={onClose} ref={cancelRef} _text={{color: "white"}}>
+                        Cancel
+                      </Button>
+                    </Button.Group>
+                  </AlertDialog.Footer>
+                </AlertDialog.Content>
+              </AlertDialog>
+            </Center>
+            {/* Delete Alert Dialog */}
 
 
             {/* <StatusBar backgroundColor="#222" /> */}

@@ -4,10 +4,13 @@ import { Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton} from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
+<<<<<<< HEAD
 
 import {LogBox} from 'react-native';
 
 LogBox.ignoreLogs(['NativeBase:']);
+=======
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -27,7 +30,7 @@ function Bottom () {
                     color: "white"
                   }
                 }}
-            />
+              />
             </Box>
             <Box alignItems="center">
               <IconButton 
@@ -53,11 +56,15 @@ const App = () => {
     const [habitName, setHabitName] = useState("");
     const [recurrence, setRecurrence] = useState("");
     const [formOfMeasurement, setFormOfMeasurement] = useState("");
+    const [id, setHabitId] = useState(0);
     const [goal, setGoal] = useState("");
     const [progress, setProgress] = useState("");
     const [habits, setHabits] = useState([]);
     const [toggleEdit, setToggleEdit] = useState(false);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
     const [date, setDate] = useState(null); //ADDED
 
     //useEffect added
@@ -147,7 +154,10 @@ const App = () => {
       setDate(date);
     }, []);
 
+<<<<<<< HEAD
   
+=======
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
@@ -266,6 +276,57 @@ const App = () => {
       setShowModal(false);
     };
   
+    const editHabit = () => {
+        const updateSql =
+        "UPDATE habits SET habitName='" +
+        habitName +
+        "', recurrence='" +
+        recurrence +
+        "', formOfMeasurement=" +
+        formOfMeasurement +
+        ", goal='" +
+        goal +
+        "' WHERE id="
+        + id;
+    
+        db.transaction(txn => {
+          txn.executeSql(
+            updateSql,
+            [],
+            (sqlTxn, res) => {
+              console.log(`Edited successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
+              // console.log(`Added successfully: ${habitName}`);
+              
+              
+              getHabits();
+              setHabitName("");
+              setRecurrence("");
+              setFormOfMeasurement("");
+              setGoal("");
+            },
+            error => {
+              console.log("error on editing habit " + error.message);
+            },
+          );
+        });
+  
+        setShowModal(false);
+      };
+    
+      const loadEdit = (editID) => {
+        setHabitId(editID);
+        for (let index = 0; index < habits.length; index++) {
+          if(editID == habits[index].id){
+            setHabitName(habits[index].habitName);
+            setRecurrence((habits[index].recurrence).toString());
+            setFormOfMeasurement(habits[index].formOfMeasurement);
+            setGoal((habits[index].goal).toString());
+            console.log(`loaded ${habits[index].habitName} ${habits[index].recurrence} ${habits[index].formOfMeasurement} ${habits[index].goal}`)
+            break;
+          }        
+        }
+      }
+
     const getHabits = () => {
       db.transaction(txn => {
         txn.executeSql(
@@ -423,30 +484,48 @@ const App = () => {
                               variant="ghost"
                               bgColor={'green.400'}
                               rounded="full"
+<<<<<<< HEAD
                               onPress={() => Alert.alert("This is the Edit Form")} 
                               icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
                                   color: "white",
                                   size: "20px",
                                   marginTop: "2px",
                                   textAlign: "center"
+=======
+                              onPress={() => {
+                                setShowModal(true); 
+                                loadEdit(item.id)
+                              }} 
+                              icon={<Icon as={Ionicons} name="pencil-sharp" />} _icon={{
+                                  color: "white",
+                                  size: "sm"
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
                                 }} 
                               />
                               <IconButton 
                               h="10" w="10" ml={2}
                               alignItems="center"
                               variant="ghost"
+<<<<<<< HEAD
                               style={{
                                 backgroundColor: "#FB6767"
                               }}
+=======
+                              bgColor={'danger.500'}
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
                               rounded="full"
                               onPress={() => Alert.alert("This is the Delete Alert")} 
                               icon={<Icon as={Ionicons} name="trash-bin-sharp" />} _icon={{
                                   color: "white",
+<<<<<<< HEAD
                                   size: "20px",
                                   marginTop: "2px",
                                   textAlign: "center"
                                   // height: 5,
                                   // width: 5
+=======
+                                  size: "sm"
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
                                 }} 
                               />
                             </HStack>
@@ -479,7 +558,11 @@ const App = () => {
                     Hey there,
                 </Text>
                 <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+<<<<<<< HEAD
                 <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
+=======
+                <Text fontSize="lg" color="gray.400">{date}</Text>
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
             </VStack>
             <Box alignItems="center">
                 {toggleEdit ? 
@@ -519,9 +602,18 @@ const App = () => {
             </Box>
             }
             <Center>
-                <Modal name="addHabitModal" isOpen={showModal} onClose={() => setShowModal(false)}>
+                <Modal name="addHabitModal" isOpen={showModal} onClose={() => 
+                {
+                    setShowModal(false);
+                    setHabitName("");
+                    setRecurrence("");
+                    setFormOfMeasurement("");
+                    setGoal("");
+                }
+                }>
                 <Modal.Content maxWidth="400px">
                     <Modal.CloseButton />
+<<<<<<< HEAD
                     <Modal.Header
                       style={{
                         backgroundColor: "#10BCE1"
@@ -529,6 +621,11 @@ const App = () => {
                       alignItems={"center"}>
                       <Text fontWeight="bold" color="white">Add a habit</Text>
                     </Modal.Header>
+=======
+                    <Modal.Header bgColor={"cyan.500"} alignItems={"center"}><Text fontWeight="bold" color="white">
+                        {toggleEdit ? "Edit habit":"Add a habit"}    
+                    </Text></Modal.Header>
+>>>>>>> 7575e8d5918be73899e0b9bca951525213ee1f6c
                     <Modal.Body>
                     <Center>
                         <VStack width="100%" space={3}>
@@ -565,7 +662,8 @@ const App = () => {
 
                         <FormControl isRequired>
                             <FormControl.Label>Form of measurement</FormControl.Label>
-                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement">
+                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"
+                        defaultValue={(toggleEdit && formOfMeasurement==2) ? "2" : "1"}>
                             <HStack>
                             <Radio
                                 colorScheme="gray"
@@ -606,7 +704,7 @@ const App = () => {
                              />
                         </FormControl>
 
-                        <Button variant="outline" onPress={addHabit} colorScheme="pink">
+                        <Button variant="outline" onPress={toggleEdit ? editHabit : addHabit} colorScheme="pink">
                             Submit
                         </Button>
 

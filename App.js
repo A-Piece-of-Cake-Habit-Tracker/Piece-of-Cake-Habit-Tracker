@@ -371,6 +371,10 @@ const App = () => {
               }
             
               setHabits(results);
+              console.log("habit results" + results);
+            } else {
+              setHabits([]);
+              console.log("no more habits");
             }
           },
           error => {
@@ -663,7 +667,10 @@ const App = () => {
                         <FormControl isRequired>
                             <FormControl.Label>Form of measurement</FormControl.Label>
                         <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"
-                        defaultValue={(toggleEdit && formOfMeasurement==2) ? "2" : "1"}>
+                        defaultValue={
+                          (toggleEdit && formOfMeasurement==2) ? "2"
+                          : (toggleEdit && formOfMeasurement==1) ? "1" : null
+                        }>
                             <HStack>
                             <Radio
                                 colorScheme="gray"

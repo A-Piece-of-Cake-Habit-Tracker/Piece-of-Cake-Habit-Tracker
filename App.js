@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
-import { Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
+import { AppRegistry, Dimensions, Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog} from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
@@ -12,9 +12,12 @@ LogBox.ignoreLogs(['NativeBase:']);
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
 function Bottom () {
+  var height = Dimensions.get('window').height;
+  var width = Dimensions.get('window').width;
+
   return <NativeBaseProvider>
-      <Box flexDirection="row" alignItems="center" width="full" height = "100%" style={{backgroundColor: "#10BCE1"}} m="0">
-        <HStack width={375} maxWidth="100%" space={3} justifyContent="space-evenly">
+      <Box flexDirection="row" alignItems="center" width={width} height = "125" style={{backgroundColor: "#10BCE1"}} m="0">
+        <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
             <Box alignItems="center">
               <IconButton 
               variant = "unstyled"

@@ -654,16 +654,6 @@ const App = () => {
                              />
                         </FormControl>
 
-                        {/* <FormControl isRequired>
-                            <FormControl.Label>Form of measurement</FormControl.Label>
-                            <Input
-                            width="100%"
-                            placeholder=""
-                            value={formOfMeasurement}
-                            onChangeText={setFormOfMeasurement}
-                             />
-                        </FormControl> */}
-
                         <FormControl isRequired>
                             <FormControl.Label>Form of measurement</FormControl.Label>
                         <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"

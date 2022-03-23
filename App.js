@@ -4,8 +4,10 @@ import { AppRegistry, Dimensions, Alert, View, StatusBar, TextInput, FlatList, S
 import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog} from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
-
+import { NavigationContainer } from "@react-navigation/native";
 import {LogBox} from 'react-native';
+import {createNativeStackNavigator} from '@react-navigation/native-stack'
+import { useNavigation } from '@react-navigation/native';
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -14,14 +16,14 @@ const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 function Bottom () {
   var height = Dimensions.get('window').height;
   var width = Dimensions.get('window').width;
-
+  const navigation = useNavigation(); 
   return <NativeBaseProvider>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" style={{backgroundColor: "#10BCE1"}} m="0">
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
             <Box alignItems="center">
               <IconButton 
               variant = "unstyled"
-              onPress={() => Alert.alert("This is the Home tab")} 
+              onPress={() => navigation.navigate("Main")} 
               icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
                   color: "rgb(128,233,250)",
                   size: "lg"
@@ -35,7 +37,7 @@ function Bottom () {
             <Box alignItems="center">
               <IconButton 
                 variant = "unstyled"
-                onPress={() => Alert.alert("This is the Statistics tab")} 
+                onPress={() => navigation.navigate("Statistics")} 
                 icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
                     color: "rgb(128,233,250)",
                     size: "lg"
@@ -50,8 +52,22 @@ function Bottom () {
       </Box> 
       </NativeBaseProvider>;
   }
+  
 
-const App = () => {
+const Stack = createNativeStackNavigator();
+
+const App =() =>{
+  return (
+  <NavigationContainer>
+    <Stack.Navigator>
+        <Stack.Screen component= {Main} name ="Main" options={{headerShown:false}} />
+        <Stack.Screen component= {Statistics} name = "Statistics" options={{headerShown:false}}/>
+    </Stack.Navigator>
+  </NavigationContainer>
+  );
+};
+
+const Main = ({navigation}) => {
     const [showModal, setShowModal] = useState(false);
     const [habitName, setHabitName] = useState("");
     const [recurrence, setRecurrence] = useState("");
@@ -770,4 +786,117 @@ const App = () => {
     );
   };
   
+  const Statistics = ({navigation}) => {
+    const [date, setDate] = useState(null); //ADDED
+    //useEffect added
+    useEffect(() => {
+      let today = new Date();
+      let month=today.getMonth()+1;
+      let m= 'Jan';
+      if (month==2)
+      {
+        m='Jan';
+      }
+      else if (month==2)
+      {
+        m='Feb';
+      }
+      else if (month==3)
+      {
+        m='Mar';
+      }
+      else if (month==4)
+      {
+        m='Apr';
+      }
+      else if (month==5)
+      {
+        m='May';
+      }
+      else if (month==6)
+      {
+        m='June';
+      }
+      else if (month==7)
+      {
+        m='July';
+      }
+      else if (month==8)
+      {
+        m='Aug';
+      }
+      else if (month==9)
+      {
+        m='Sept';
+      }
+      else if (month==10)
+      {
+        m='Oct';
+      }
+      else if (month==11)
+      {
+        m='Nov';
+      }
+      else if (month==12)
+      {
+        m='Dec';
+      }
+      let day=today.getDay();
+      let d= 'Sun';
+      if (day==0)
+      {
+        d='Sun';
+      }
+      else if (day==1)
+      {
+        d='Mon';
+      }
+      else if (day==2)
+      {
+        d='Tue';
+      }
+      else if (day==3)
+      {
+        d='Wed';
+      }
+      else if (day==4)
+      {
+        d='Thurs';
+      }
+      else if (day==5)
+      {
+        d='Fri';
+      }
+      else if (day==6)
+      {
+        d='Sat';
+      }
+      let date = d+ ', '+ m + ' '+ today.getDate();
+      setDate(date);
+    }, []);
+
+    return (
+      <NativeBaseProvider>
+      {/* ===================================== HEADER ===================================== */}
+        <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
+            <VStack pl={2} alignItems="flex-start" >
+                <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
+                    Good job,
+                </Text>
+                <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
+            </VStack>
+        </HStack>
+        <ScrollView maxW="375" h="485">
+              <Center>
+                  <VStack mt={5} alignItems="center">
+                  <FlatList/>
+                  </VStack>
+              </Center>
+        </ScrollView>
+        <Bottom />
+      </NativeBaseProvider>
+    );
+  };
+
   export default App;

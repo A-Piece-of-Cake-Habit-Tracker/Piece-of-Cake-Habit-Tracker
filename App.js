@@ -2,20 +2,26 @@ import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
 import { AppRegistry, Dimensions, Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
-import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog} from 'native-base';
+import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Pressable, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog, Slide } from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import {LogBox} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import { useNavigation } from '@react-navigation/native';
+import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+import OutsideView from 'react-native-detect-press-outside';
 
 LogBox.ignoreLogs(['NativeBase:']);
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
+var height = Dimensions.get('window').height;
+var width = Dimensions.get('window').width;
+
+
 function Bottom () {
-  var height = Dimensions.get('window').height;
-  var width = Dimensions.get('window').width;
+  // var height = Dimensions.get('window').height;
+  // var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
   return <NativeBaseProvider>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" style={{backgroundColor: "#10BCE1"}} m="0">
@@ -80,8 +86,13 @@ const Main = ({navigation}) => {
     const [date, setDate] = useState(null); //ADDED
     const [isOpen, setIsOpen] = useState(false); //FOR DELETE
     const onClose = () => setIsOpen(false); //FOR DELETE
-    const cancelRef = React.useRef(null); //FOR DELETE        
-
+    const cancelRef = React.useRef(null); //FOR DELETE
+    const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
+    const [habitNameDisplay, setHabitNameDisplay] = useState("");
+    const [recurrenceDisplay, setRecurrenceDisplay] = useState("");
+    const [goalDisplay, setGoalDisplay] = useState("");
+    const [formOfMeasurementDisplay, setFormOfMeasurementDisplay] = useState("");
+    const [skipsDisplay, setSkipsDisplay] = useState("");
 
     //useEffect added
     useEffect(() => {
@@ -446,12 +457,44 @@ const Main = ({navigation}) => {
       });
     }
 
+    const viewHabit = (item) => {
+      setIsViewHabit(true);
+
+      console.log("viewed " + item.habitName);
+      setHabitNameDisplay(item.habitName);
+      setRecurrenceDisplay(item.recurrence);
+      setGoalDisplay(item.goal);
+      if (item.formOfMeasurement == 1) {
+        setFormOfMeasurementDisplay("Increment");
+      } else {
+        setFormOfMeasurementDisplay("Timer");
+      }
+      
+      setSkipsDisplay("x");
+    }
+
+
     const renderHabit = ({ item }) => {
+      // const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
       console.log(item)
+      
       return (
         <NativeBaseProvider>
             <Center>
-                <HStack w="80" h="20" mb="4" ml="4" mr="4" bg="white" rounded="2xl" shadow={3} flexDirection="row" style={{flexWrap: "wrap", overflow: "hidden"}}>
+                <Pressable w="80" h="20" mb="4" ml="4" mr="4"
+                bg="white"
+                // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
+                rounded="2xl"
+                shadow={3}
+                flexDirection="row"
+                // style={{flexWrap: "wrap", overflow: "hidden"}}
+                onPress={() => viewHabit(item)}
+                style={{
+                  flexWrap: "wrap",
+                  overflow: "hidden",
+                }}
+                // onPress={() => alert("hi")}
+                >
                     <VStack h="20" w="55"
                     // bg="cyan.600"
                     style={
@@ -571,10 +614,16 @@ const Main = ({navigation}) => {
                         
                       </VStack>
                     </VStack>
-                </HStack>
+                </Pressable>
             </Center>
-            
-            
+          
+            {/* <Slide in={isViewHabit} placement="top">
+              <Box p={10} _text={{
+              color: "white"
+            }} bg="teal.400" rounded="md">
+                I am coming from Top
+              </Box>
+            </Slide> */}
         </NativeBaseProvider>
       );
     };
@@ -779,9 +828,76 @@ const Main = ({navigation}) => {
                   </VStack>
               </Center>
           </ScrollView>
-          
+
           <Bottom />
         </Center>
+        
+          <Slide in={isViewHabit} placement="bottom">
+            <Box p={10} bg="white"
+            width={width} height = "425"
+            position="absolute" bottom="-75"
+            rounded="70">
+              <Center>
+                <Text fontSize="4xl" fontWeight="bold" color="black">
+                  {habitNameDisplay}
+                </Text>
+
+                <HStack space={10} justifyContent="center" alignItems={"center"}>
+                  <VStack mt={5} space={5}>
+                    <Box>
+                      <Text fontSize="2xl" fontWeight="bold" color="#10BCE1">
+                        Every {recurrenceDisplay} day/s
+                      </Text>
+                      <Text fontSize="sm" fontWeight="semibold" color="gray.400">
+                        Recurrence
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text fontSize="2xl" fontWeight="bold" color="#10BCE1">
+                        {formOfMeasurementDisplay}
+                      </Text>
+                      <Text fontSize="sm" fontWeight="semibold" color="gray.400">
+                        Form of measurement
+                      </Text>
+                    </Box>
+                  </VStack>
+                  <VStack mt={5} space={5}>
+                  <Box>
+                      <Text fontSize="2xl" fontWeight="bold" color="#10BCE1">
+                        {goalDisplay} time/s
+                      </Text>
+                      <Text fontSize="sm" fontWeight="semibold" color="gray.400">
+                        Goal
+                      </Text>
+                    </Box>
+                    <Box>
+                      <Text fontSize="2xl" fontWeight="bold" color="#10BCE1">
+                        {skipsDisplay} skip/s left
+                      </Text>
+                      <Text fontSize="sm" fontWeight="semibold" color="gray.400">
+                        Number of skips left
+                      </Text>
+                    </Box>
+                  </VStack>
+                </HStack>
+                <HStack mt={8} space={10} justifyContent="space-evenly">
+                  <Button
+                  variant="subtle"
+                  rounded="lg"
+                  onPress={() => alert("Skipped habit")}>
+                    Skip today
+                  </Button>
+                  <Button
+                  variant="outline"
+                  rounded="lg"
+                  onPress={() => setIsViewHabit(false)}>
+                    Close habit
+                  </Button>
+                </HStack>
+              </Center> 
+            </Box>
+          </Slide>
+      
       </NativeBaseProvider>
     );
   };

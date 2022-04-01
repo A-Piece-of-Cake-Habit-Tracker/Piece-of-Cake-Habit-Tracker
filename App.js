@@ -34,7 +34,7 @@ function Bottom () {
             variant = "unstyled"
             onPress={() => {settoggleStatistics(false); navigation.navigate("Main")}} 
             icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
-                color: "rgb(128,233,250)",
+                color: "white",
                 size: "lg"
               }}_pressed={{
                 _icon: {
@@ -48,7 +48,7 @@ function Bottom () {
               variant = "unstyled"
               onPress={() => {settoggleStatistics(true); navigation.navigate("Statistics")}} 
               icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
-                  color: "white",
+                  color: "rgb(128,233,250)",
                   size: "lg"
                 }} _pressed={{
                   _icon: {
@@ -68,7 +68,7 @@ function Bottom () {
             variant = "unstyled"
             onPress={() => {settoggleStatistics(false); navigation.navigate("Main")}} 
             icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
-                color: "white",
+                color: "rgb(128,233,250)",
                 size: "lg"
               }}_pressed={{
                 _icon: {
@@ -82,7 +82,7 @@ function Bottom () {
               variant = "unstyled"
               onPress={() => {settoggleStatistics(true); navigation.navigate("Statistics")}} 
               icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
-                  color: "rgb(128,233,250)",
+                  color: "white",
                   size: "lg"
                 }} _pressed={{
                   _icon: {

@@ -20,80 +20,41 @@ var width = Dimensions.get('window').width;
 
 
 function Bottom () {
-  // var height = Dimensions.get('window').height;
-  // var width = Dimensions.get('window').width;
+  var height = Dimensions.get('window').height;
+  var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
-  const [toggleStatistics, settoggleStatistics] = useState(false); //for Home and Statistics button
   return <NativeBaseProvider>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" style={{backgroundColor: "#10BCE1"}} m="0">
-      {toggleStatistics &&
-        <NativeBaseProvider>
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-          <Box alignItems="center">
-            <IconButton 
-            variant = "unstyled"
-            onPress={() => {settoggleStatistics(false); navigation.navigate("Main")}} 
-            icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
-                color: "white",
-                size: "lg"
-              }}_pressed={{
-                _icon: {
-                  color: "white"
-                }
-              }}
-            />
-          </Box>
-          <Box alignItems="center">
-            <IconButton 
+            <Box alignItems="center">
+              <IconButton 
               variant = "unstyled"
-              onPress={() => {settoggleStatistics(true); navigation.navigate("Statistics")}} 
-              icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
+              onPress={() => navigation.navigate("Main")} 
+              icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
                   color: "rgb(128,233,250)",
                   size: "lg"
-                }} _pressed={{
+                }}_pressed={{
                   _icon: {
-                      color: "white",
-                    }
+                    color: "white"
+                  }
                 }}
-            />
-          </Box>
+              />
+            </Box>
+            <Box alignItems="center">
+              <IconButton 
+                variant = "unstyled"
+                onPress={() => navigation.navigate("Statistics")} 
+                icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
+                    color: "rgb(128,233,250)",
+                    size: "lg"
+                  }} _pressed={{
+                     _icon: {
+                        color: "white",
+                      }
+                  }}
+              />
+            </Box>
         </HStack>
-        </NativeBaseProvider>
-      }
-      {!toggleStatistics &&
-        <NativeBaseProvider>
-        <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-          <Box alignItems="center">
-            <IconButton 
-            variant = "unstyled"
-            onPress={() => {settoggleStatistics(false); navigation.navigate("Main")}} 
-            icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
-                color: "rgb(128,233,250)",
-                size: "lg"
-              }}_pressed={{
-                _icon: {
-                  color: "white"
-                }
-              }}
-            />
-          </Box>
-          <Box alignItems="center">
-            <IconButton 
-              variant = "unstyled"
-              onPress={() => {settoggleStatistics(true); navigation.navigate("Statistics")}} 
-              icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
-                  color: "white",
-                  size: "lg"
-                }} _pressed={{
-                  _icon: {
-                      color: "white",
-                    }
-                }}
-            />
-          </Box>
-        </HStack>  
-        </NativeBaseProvider>          
-      }
       </Box> 
       </NativeBaseProvider>;
   }

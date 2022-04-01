@@ -23,38 +23,77 @@ function Bottom () {
   // var height = Dimensions.get('window').height;
   // var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
+  const [toggleStatistics, settoggleStatistics] = useState(false); //for Home and Statistics button
   return <NativeBaseProvider>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" style={{backgroundColor: "#10BCE1"}} m="0">
+      {toggleStatistics &&
+        <NativeBaseProvider>
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-            <Box alignItems="center">
-              <IconButton 
+          <Box alignItems="center">
+            <IconButton 
+            variant = "unstyled"
+            onPress={() => {settoggleStatistics(false); navigation.navigate("Main")}} 
+            icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
+                color: "rgb(128,233,250)",
+                size: "lg"
+              }}_pressed={{
+                _icon: {
+                  color: "white"
+                }
+              }}
+            />
+          </Box>
+          <Box alignItems="center">
+            <IconButton 
               variant = "unstyled"
-              onPress={() => navigation.navigate("Main")} 
-              icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
+              onPress={() => {settoggleStatistics(true); navigation.navigate("Statistics")}} 
+              icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
+                  color: "white",
+                  size: "lg"
+                }} _pressed={{
+                  _icon: {
+                      color: "white",
+                    }
+                }}
+            />
+          </Box>
+        </HStack>
+        </NativeBaseProvider>
+      }
+      {!toggleStatistics &&
+        <NativeBaseProvider>
+        <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
+          <Box alignItems="center">
+            <IconButton 
+            variant = "unstyled"
+            onPress={() => {settoggleStatistics(false); navigation.navigate("Main")}} 
+            icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
+                color: "white",
+                size: "lg"
+              }}_pressed={{
+                _icon: {
+                  color: "white"
+                }
+              }}
+            />
+          </Box>
+          <Box alignItems="center">
+            <IconButton 
+              variant = "unstyled"
+              onPress={() => {settoggleStatistics(true); navigation.navigate("Statistics")}} 
+              icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
                   color: "rgb(128,233,250)",
                   size: "lg"
-                }}_pressed={{
+                }} _pressed={{
                   _icon: {
-                    color: "white"
-                  }
+                      color: "white",
+                    }
                 }}
-              />
-            </Box>
-            <Box alignItems="center">
-              <IconButton 
-                variant = "unstyled"
-                onPress={() => navigation.navigate("Statistics")} 
-                icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
-                    color: "rgb(128,233,250)",
-                    size: "lg"
-                  }} _pressed={{
-                     _icon: {
-                        color: "white",
-                      }
-                  }}
-              />
-            </Box>
-        </HStack>
+            />
+          </Box>
+        </HStack>  
+        </NativeBaseProvider>          
+      }
       </Box> 
       </NativeBaseProvider>;
   }
@@ -532,38 +571,44 @@ const Main = ({navigation}) => {
                         {!toggleEdit &&
                           <NativeBaseProvider>
                             <HStack h="20" alignItems={"center"} justifyContent={"center"}>
-                                <Button
+                                <IconButton
                                 h="10" w="10"
                                 alignItems="center"
                                 variant="ghost"
-                                // bgColor={'green.400'}
                                 style={
                                   item.progress === item.goal ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
+                                _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
-                                rounded="full">
-                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white"
-                                onPress={() => updateHabit(item, "inc")}>
-                                    +
-                                </Text>
-                                </Button>
-                                <Button
+                                rounded="full"
+                                onPress={() => updateHabit(item, "inc")}
+                                icon={<Icon as={Entypo} name="plus" />} _icon={{
+                                  color: "white",
+                                  size: "20px",
+                                  marginTop: "2px",
+                                }} 
+                                />
+                                <IconButton
                                 h="10" w="10" ml={2}
                                 alignItems="center"
-                                variant="ghost"
+                                variant="solid"
                                 style={
                                   item.progress === 0 ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
-                                rounded="full">
-                                <Text fontSize="2xl" lineHeight="25.5" fontWeight="bold" color="white"
-                                onPress={() => updateHabit(item, "dec")}>
-                                    -
-                                </Text>
-                                </Button>
+                                _pressed={{bgColor:'danger.500'}}
+                                
+                                rounded="full"
+                                onPress={() => updateHabit(item, "dec")}
+                                icon={<Icon as={Entypo} name="minus" />} _icon={{
+                                  color: "white",
+                                  size: "20px",
+                                  marginTop: "2px",
+                                }} 
+                                />
                             </HStack>
                           </NativeBaseProvider>
                           
@@ -574,8 +619,9 @@ const Main = ({navigation}) => {
                               <IconButton 
                               h="10" w="10"
                               alignItems="center"
-                              variant="ghost"
-                              bgColor={'green.400'}
+                              variant="solid"
+                              bgColor={'#08E17C'}
+                              _pressed={{bgColor:'green.500'}}
                               rounded="full"
                               onPress={() => {
                                 setShowModal(true); 
@@ -585,16 +631,14 @@ const Main = ({navigation}) => {
                                   color: "white",
                                   size: "20px",
                                   marginTop: "2px",
-
                                 }} 
                               />
                               <IconButton 
                               h="10" w="10" ml={2}
                               alignItems="center"
-                              variant="ghost"
-                              style={{
-                                backgroundColor: "#FB6767"
-                              }}
+                              bgColor={'#fb6767'}
+                              _pressed={{bgColor:'danger.500'}}
+                              variant="solid"
                               rounded="full"
                               onPress={() => {
                                 setIsOpen(true);
@@ -794,7 +838,7 @@ const Main = ({navigation}) => {
                       <Button colorScheme='danger' onPress={deleteHabit}>
                         Delete
                       </Button>
-                      <Button variant='subtle' bgColor ={"rgb(168,182,196)"} onPress={onClose} ref={cancelRef} _text={{color: "white"}}>
+                      <Button colorScheme='gray' onPress={onClose} ref={cancelRef} _text={{color: "white"}}>
                         Cancel
                       </Button>
                     </Button.Group>

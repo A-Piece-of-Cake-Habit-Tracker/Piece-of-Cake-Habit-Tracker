@@ -301,6 +301,67 @@ const Main = ({navigation}) => {
     };
   
     const editHabit = () => {
+      const incomplete = []
+
+
+      if (!habitName) {
+        incomplete.push("name of habit")
+      }
+
+      if (!recurrence) {
+        incomplete.push("recurrence")
+      }
+
+      if (!formOfMeasurement) {
+        incomplete.push("form of measurement")
+      }
+
+      if (!goal) {
+        incomplete.push("goal")
+      }
+
+      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+        var str = "Please enter the ";
+        for(var i = 0; i < incomplete.length; i++) {
+          if (incomplete.length == 1){
+            str += incomplete[i] + ".";
+          }
+          else if (incomplete.length != 1 && i == incomplete.length - 1){
+            str += "and " + incomplete[i] + ".";
+          } else {
+            str += incomplete[i] + ", ";
+          }
+        }
+        console.log(str);
+        Alert.alert(
+          "Incomplete habit details",
+          str,
+          [{text: 'OK', style: 'destructive'}]
+        );
+        return false;
+      }
+
+
+      if (!(/^[0-9]*$/.test(recurrence))){
+        console.log("2 Please enter a valid integer for the recurrence.");
+        Alert.alert(
+          "Invalid habit details",
+          "Please enter a valid integer for the recurrence.",
+          [{text: 'OK', style: 'destructive'}]
+        );
+        return false;
+      }
+
+      if (!(/^[0-9]*$/.test(goal))){
+        console.log("2 Please enter a valid integer for the goal.");
+        Alert.alert(
+          "Invalid habit details",
+          "Please enter a valid integer for the goal.",
+          [{text: 'OK', style: 'destructive'}]
+        );
+        return false;
+      }
+      
         const updateSql =
         "UPDATE habits SET habitName='" +
         habitName +

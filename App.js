@@ -74,26 +74,35 @@ const App =() =>{
 };
 
 const Main = ({navigation}) => {
-    const [showModal, setShowModal] = useState(false);
-    const [habitName, setHabitName] = useState("");
-    const [recurrence, setRecurrence] = useState("");
-    const [formOfMeasurement, setFormOfMeasurement] = useState("");
-    const [id, setHabitId] = useState(0);
-    const [goal, setGoal] = useState("");
-    const [progress, setProgress] = useState("");
-    const [habits, setHabits] = useState([]);
-    const [toggleEdit, setToggleEdit] = useState(false);
-    const [date, setDate] = useState(null); //ADDED
-    const [isOpen, setIsOpen] = useState(false); //FOR DELETE
-    const onClose = () => setIsOpen(false); //FOR DELETE
-    const cancelRef = React.useRef(null); //FOR DELETE
-    const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
-    const [habitNameDisplay, setHabitNameDisplay] = useState("");
-    const [recurrenceDisplay, setRecurrenceDisplay] = useState("");
-    const [goalDisplay, setGoalDisplay] = useState("");
-    const [formOfMeasurementDisplay, setFormOfMeasurementDisplay] = useState("");
-    const [skipsDisplay, setSkipsDisplay] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [habitName, setHabitName] = useState("");
+  const [recurrence, setRecurrence] = useState("");
+  const [formOfMeasurement, setFormOfMeasurement] = useState("");
+  const [id, setHabitId] = useState(0);
+  const [goal, setGoal] = useState("");
+  const [progress, setProgress] = useState("");
+  const [skips, setSkips] = useState("");
+  const [habits, setHabits] = useState([]);
+  const [toggleEdit, setToggleEdit] = useState(false);
+  const [date, setDate] = useState(null); //ADDED
+  const [isOpen, setIsOpen] = useState(false); //FOR DELETE
+  const onClose = () => setIsOpen(false); //FOR DELETE
+  const cancelRef = React.useRef(null); //FOR DELETE
 
+  const [SkipOpen, setSkipOpen]= useState(false); //FOR SKIP
+  const onCloseSkip = () => setSkipOpen(false); //FOR SKIP
+  const cancelSkip = React.useRef(null); //FOR SKIP
+
+  const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
+  const [habitNameDisplay, setHabitNameDisplay] = useState("");
+  const [recurrenceDisplay, setRecurrenceDisplay] = useState("");
+  const [goalDisplay, setGoalDisplay] = useState("");
+  const [formOfMeasurementDisplay, setFormOfMeasurementDisplay] = useState("");
+  const [skipsDisplay, setSkipsDisplay] = useState("");
+  const [itemID, setitemID] = useState(0);
+  const [progressDisplay, setProgressDisplay] = useState("");
+  const [formOfMeasurementOut, setFormOfMeasurementOut]= useState("");
+  const [isSkip,setIsSkip]= useState(false);
     //useEffect added
     useEffect(() => {
       let today = new Date();
@@ -186,7 +195,7 @@ const Main = ({navigation}) => {
       db.transaction(txn => {
         txn.executeSql(
           // `DROP TABLE habits`,
-          `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitName TEXT, recurrence INTEGER, formOfMeasurement INTEGER, goal INTEGER, progress INTEGER)`,
+          `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitName TEXT, recurrence INTEGER, formOfMeasurement INTEGER, goal INTEGER, progress INTEGER, skips INTEGER, skipped BOOL)`,
           [],
           (sqlTxn, res) => {
             console.log("table created successfully");
@@ -262,9 +271,11 @@ const Main = ({navigation}) => {
       }
 
       const progress = 0;
-      
+      const skips = 2;
+      const skipped = false;
+
       const insertSql =
-      "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal,progress) VALUES ('" +
+      "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal,progress,skips,skipped) VALUES ('" +
       habitName +
       "'," +
       recurrence +
@@ -274,6 +285,10 @@ const Main = ({navigation}) => {
       goal +
       "," +
       progress +
+      "," +
+      skips +
+      "," +
+      skipped +
       ")";
 
       console.log(insertSql)
@@ -283,7 +298,7 @@ const Main = ({navigation}) => {
           insertSql,
           [],
           (sqlTxn, res) => {
-            console.log(`Added successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal} ${progress}`);
+            console.log(`Added successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal} ${progress} ${skips} ${skipped}`);
             // console.log(`Added successfully: ${habitName}`);
             getHabits();
             setHabitName("");
@@ -458,7 +473,7 @@ const Main = ({navigation}) => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress });
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped });
               }
             
               setHabits(results);
@@ -501,6 +516,10 @@ const Main = ({navigation}) => {
       item.goal +
       ",progress=" +
       item.progress +
+      ",skips=" +
+      item.skips +
+      ",skipped=" +
+      item.skipped +
       " WHERE id=" +
       item.id;
 
@@ -518,20 +537,73 @@ const Main = ({navigation}) => {
       });
     }
 
+    function skipHabit() {
+      let val=skipsDisplay;
+      let skipping=true;
+      if (skipsDisplay!=0){
+        val--;
+      }
+      else{
+        Alert.alert("Skips are consumed!");
+        setSkipOpen(false);
+        return
+      }
+
+      console.log("updating: " + itemID)
+      const skipSql =
+      "UPDATE habits SET habitName = '" +
+      habitNameDisplay +
+      "', recurrence=" +
+      recurrenceDisplay +
+      ",formOfMeasurement=" +
+      formOfMeasurementOut +
+      ",goal=" +
+      goalDisplay +
+      ",progress=" +
+      progressDisplay +
+      ",skips=" +
+      val +
+      ",skipped=" +
+      skipping +
+      " WHERE id=" +
+      itemID;
+
+      console.log(skipSql)
+      db.transaction(function (tx) {
+        tx.executeSql(
+          skipSql,
+          [],
+          (sqlTxn, res) => {
+            console.log("habit skipped successfully");
+          },
+          error => {
+            console.log("error on skipping habit " + error.message);
+          },
+        );
+      });
+      setSkipOpen(false);
+      setSkipsDisplay(val);
+      getHabits();
+    }
+
     const viewHabit = (item) => {
       setIsViewHabit(true);
 
       console.log("viewed " + item.habitName);
+      setitemID(item.id);
       setHabitNameDisplay(item.habitName);
       setRecurrenceDisplay(item.recurrence);
       setGoalDisplay(item.goal);
+      setSkipsDisplay(item.skips);
+      setProgressDisplay(item.progress);
+      setFormOfMeasurementOut(item.formOfMeasurement);
+      setIsSkip(item.skipped);
       if (item.formOfMeasurement == 1) {
         setFormOfMeasurementDisplay("Increment");
       } else {
         setFormOfMeasurementDisplay("Timer");
       }
-      
-      setSkipsDisplay("x");
+
     }
 
 
@@ -543,7 +615,7 @@ const Main = ({navigation}) => {
         <NativeBaseProvider>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
-                bg="white"
+                bg= {item.skipped==false ? "white": "trueGray.300"}
                 // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}
@@ -950,7 +1022,7 @@ const Main = ({navigation}) => {
                   <Button
                   variant="subtle"
                   rounded="lg"
-                  onPress={() => alert("Skipped habit")}>
+                  onPress={() => {setSkipOpen(true);}}>
                     Skip today
                   </Button>
                   <Button
@@ -962,6 +1034,26 @@ const Main = ({navigation}) => {
                 </HStack>
               </Center> 
             </Box>
+            <Center>
+              <AlertDialog leastDestructiveRef={cancelSkip} isOpen={SkipOpen} onClose={onCloseSkip}>
+                <AlertDialog.Content>
+                  <AlertDialog.Header bgColor={"danger.500"} alignItems={"center"}><Text fontWeight="bold" color="white">Skip a Habit</Text></AlertDialog.Header>
+                  <AlertDialog.Body>
+                    Are you sure you want to skip this habit?
+                  </AlertDialog.Body>
+                  <AlertDialog.Footer>
+                    <Button.Group space={2}>
+                      <Button colorScheme='danger' onPress={skipHabit}>
+                        Skip
+                      </Button>
+                      <Button variant='subtle' bgColor ={"rgb(168,182,196)"} onPress={onCloseSkip} ref={cancelSkip} _text={{color: "white"}}>
+                        Cancel
+                      </Button>
+                    </Button.Group>
+                  </AlertDialog.Footer>
+                </AlertDialog.Content>
+              </AlertDialog>
+            </Center>
           </Slide>
       
       </NativeBaseProvider>

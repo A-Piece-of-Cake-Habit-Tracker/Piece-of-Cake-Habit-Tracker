@@ -273,7 +273,7 @@ const Main = ({navigation}) => {
 
       const progress = 0;
       const skips = 2;
-      const skipped = false;
+      const skipped = 0;
 
       const insertSql =
       "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal,progress,skips,skipped) VALUES ('" +
@@ -540,7 +540,7 @@ const Main = ({navigation}) => {
 
     function skipHabit() {
       let val=skipsDisplay;
-      let skipping=true;
+      let skipping=1;
       if (skipsDisplay!=0){
         val--;
       }
@@ -616,7 +616,7 @@ const Main = ({navigation}) => {
         <NativeBaseProvider>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
-                bg= {item.skipped==false ? "white": "trueGray.300"}
+                bg= {item.skipped==0 ? "white": "trueGray.300"}
                 // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}

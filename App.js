@@ -68,6 +68,7 @@ const App =() =>{
     <Stack.Navigator>
         <Stack.Screen component= {Main} name ="Main" options={{headerShown:false}} />
         <Stack.Screen component= {Statistics} name = "Statistics" options={{headerShown:false}}/>
+        <Stack.Screen component= {Stats_1_Habit} name = "Stats_1_Habit" options={{headerShown:false}}/>
     </Stack.Navigator>
   </NavigationContainer>
   );
@@ -194,7 +195,7 @@ const Main = ({navigation}) => {
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
-          // `DROP TABLE habits`,
+          //`DROP TABLE habits`,
           `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT, habitName TEXT, recurrence INTEGER, formOfMeasurement INTEGER, goal INTEGER, progress INTEGER, skips INTEGER, skipped BOOL)`,
           [],
           (sqlTxn, res) => {
@@ -1062,6 +1063,7 @@ const Main = ({navigation}) => {
   
   const Statistics = ({navigation}) => {
     const [date, setDate] = useState(null); //ADDED
+    const [habits, setHabits] = useState([]);
     //useEffect added
     useEffect(() => {
       let today = new Date();
@@ -1149,26 +1151,235 @@ const Main = ({navigation}) => {
       setDate(date);
     }, []);
 
+    const getHabits = () => {
+      db.transaction(txn => {
+        txn.executeSql(
+          `SELECT * FROM habits ORDER BY id DESC`,
+          [],
+          (sqlTxn, res) => {
+            console.log("habits retrieved successfully");
+            let len = res.rows.length;
+  
+            if (len > 0) {
+              let results = [];
+              for (let i = 0; i < len; i++) {
+                let item = res.rows.item(i);
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress });
+              }
+            
+              setHabits(results);
+              console.log("habit results" + results);
+            } else {
+              setHabits([]);
+              console.log("no more habits");
+            }
+          },
+          error => {
+            console.log("error on getting habits " + error.message);
+          },
+        );
+      });
+    };
+
+    const renderStatistics = ({ item }) => {
+      console.log(item)
+      
+      return (
+        <NativeBaseProvider>
+            <Center>
+                <Pressable w="80" h="20" mb="4" ml="4" mr="4"
+                bg="white"
+                // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
+                rounded="2xl"
+                shadow={3}
+                flexDirection="row"
+                // style={{flexWrap: "wrap", overflow: "hidden"}}
+                onPress={() => navigation.navigate("Stats_1_Habit")} 
+                style={{
+                  flexWrap: "wrap",
+                  overflow: "hidden",
+                }}
+                // onPress={() => alert("hi")}
+                >
+                    <VStack w="264" flexDirection="row" justifyContent={"space-between"}>
+                      <VStack pt={3} pb={3} pr={5} pl={5}>
+                          {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
+                          <HStack alignItems={"flex-start"}>
+                            <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
+                          </HStack>
+                          <HStack alignItems={"flex-start"}>
+                              <Text fontSize="sm"
+                              fontWeight="bold"
+                              // color="cyan.600"
+                              style={{color: "#D884FD"}}>
+                                Best Streak: 3 time/s 
+                              </Text>
+                          </HStack>
+                          
+                          {/* <Text>{item.formOfMeasurement}</Text>        */}
+                      </VStack>
+                    </VStack>
+                    <Divider my={2} orientation="vertical" bg="transparent"/>
+                    <VStack h="20" w="55"
+                    // bg="cyan.600"
+                    style={
+                    {backgroundColor: "#D884FD"}
+                    }
+                    alignItems="center"
+                    justifyContent="center"> 
+                      <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="bold" color="white"> 1 </Text> 
+                    </VStack>
+
+                </Pressable>
+            </Center>
+        </NativeBaseProvider>
+      );
+    };
+
+    useEffect(async () => {
+      await getHabits();
+    }, []);
+
+
     return (
       <NativeBaseProvider>
-      {/* ===================================== HEADER ===================================== */}
-        <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
-            <VStack pl={2} alignItems="flex-start" >
-                <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
-                    Good job,
+        <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
+        {/* ===================================== HEADER ===================================== */}
+          <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
+              <VStack pl={2} alignItems="flex-start" >
+                  <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
+                      Good job,
+                  </Text>
+                  <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                  <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
+              </VStack>
+          </HStack>
+          <ScrollView maxW="375" h="485">
+                <Center>
+                <VStack alignItems="center">
+                  <AllHabits/>
+                  <FlatList
+                  data={habits}
+                  renderItem={renderStatistics}
+                  key={cat => cat.id}
+                  />
+                </VStack>
+                </Center>
+          </ScrollView>
+          <Bottom />
+        </Center>
+      </NativeBaseProvider>
+    );
+  };
+
+    function AllHabits () { 
+    return <NativeBaseProvider>
+      <VStack mt={5} alignItems="center">
+      <Center>
+          <Pressable w="80" h="20" mb="4" ml="4" mr="4"
+          bg="white"
+          // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
+          rounded="2xl"
+          shadow={3}
+          flexDirection="row"
+          // style={{flexWrap: "wrap", overflow: "hidden"}}
+          style={{
+            flexWrap: "wrap",
+            overflow: "hidden",
+          }}
+          // onPress={() => alert("hi")}
+          >
+              <VStack w="264" flexDirection="row" justifyContent={"space-between"}>
+                <VStack pt={3} pb={3} pr={5} pl={5}>
+                    {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
+                    <HStack alignItems={"flex-start"}>
+                      <Text fontSize="xl" fontWeight="bold" color="black">All Habits</Text>
+                    </HStack>
+                    <HStack alignItems={"flex-start"}>
+                        <Text fontSize="sm"
+                        fontWeight="bold"
+                        // color="cyan.600"
+                        style={
+                          {color: "#10BCE1"}
+                        }>
+                          Best Streak: 3 day/s
+                        </Text>
+                    </HStack>
+                    {/* <Text>{item.formOfMeasurement}</Text>        */}
+                </VStack>
+              </VStack>
+              <Divider my={2} orientation="vertical" bg="transparent"/>
+              <VStack h="20" w="55" pr={0}
+              // bg="cyan.600"
+              style={{backgroundColor: "#10BCE1"}}
+              alignItems="center"
+              justifyContent="center"> 
+                <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="bold" color="white"> 3 </Text>
+              </VStack>
+          </Pressable>
+        </Center>
+    </VStack>
+    </NativeBaseProvider>;
+  };
+
+  const Stats_1_Habit = ({navigation,item}) => {
+    const [habits, setHabits] = useState([]);
+    
+    const getHabits = () => {
+      db.transaction(txn => {
+        txn.executeSql(
+          `SELECT * FROM habits ORDER BY id DESC`,
+          [],
+          (sqlTxn, res) => {
+            console.log("habits retrieved successfully");
+            let len = res.rows.length;
+  
+            if (len > 0) {
+              let results = [];
+              for (let i = 0; i < len; i++) {
+                let item = res.rows.item(i);
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress });
+              }
+            
+              setHabits(results);
+              console.log("habit results" + results);
+            } else {
+              setHabits([]);
+              console.log("no more habits");
+            }
+          },
+          error => {
+            console.log("error on getting habits " + error.message);
+          },
+        );
+      });
+    };
+
+    useEffect(async () => {
+      await getHabits();
+    }, []);
+  
+    return (
+      <NativeBaseProvider>
+        <VStack pl={2} alignItems="flex-start" >
+          <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
+            <Box></Box>
+            <Box alignItems="center">
+              <Button variant="ghost" onPress={() => navigation.navigate("Statistics")} >
+                <Text fontSize="lg" fontWeight="normal" color="cyan.600">
+                  Go Back
                 </Text>
-                <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
-                <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
-            </VStack>
-        </HStack>
-        <ScrollView maxW="375" h="485">
-              <Center>
-                  <VStack mt={5} alignItems="center">
-                  <FlatList/>
-                  </VStack>
-              </Center>
-        </ScrollView>
-        <Bottom />
+              </Button>
+            </Box>
+          </HStack>
+  
+          <Text mt={5} fontSize="4xl" fontWeight="bold" color="black" alignSelf={"center"}>
+            Habit Name
+          </Text>
+          <Text  fontSize="sm" fontWeight="normal" color="trueGray.400" alignSelf={"center"}>
+            8 time/s every 1 day/s
+          </Text>
+        </VStack>
       </NativeBaseProvider>
     );
   };

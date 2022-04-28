@@ -864,7 +864,7 @@ const Main = ({navigation}) => {
 
     const renderHabit = ({ item }) => {
       // const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
-      console.log(item)
+      // console.log(item)
 
       console.log("== STREAK OF " + item.id + " " + item.habitName + " ==")
       let streakId = item.id;

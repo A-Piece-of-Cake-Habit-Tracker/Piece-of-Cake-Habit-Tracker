@@ -8,9 +8,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import {LogBox} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import { useNavigation } from '@react-navigation/native';
-import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
-import OutsideView from 'react-native-detect-press-outside';
-import { insert } from "formik";
+// import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
+// import OutsideView from 'react-native-detect-press-outside';
+// import { insert } from "formik";
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -206,7 +206,6 @@ const Main = ({navigation}) => {
           },
         );
       });
-
 
       db.transaction(txn => {
         txn.executeSql(
@@ -593,7 +592,7 @@ const Main = ({navigation}) => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress });
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, date: item.date });
               }
             
               setHabits(results);
@@ -653,11 +652,9 @@ const Main = ({navigation}) => {
       "' WHERE id=" +
       item.id;
 
-      console.log(updateHabitsTable)
+      console.log(updateHabitsTable);
       
-      console.log("updating: " + item.id)
-
-      
+      console.log("updating: " + item.id);
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -754,7 +751,6 @@ const Main = ({navigation}) => {
       });
 
       // print all entries in habitsCalendarList
-      const habitsCalendarList = [];
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -864,12 +860,12 @@ const Main = ({navigation}) => {
 
     const renderHabit = ({ item }) => {
       // const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
-      // console.log(item)
+      console.log(item)
 
       console.log("== STREAK OF " + item.id + " " + item.habitName + " ==")
       let streakId = item.id;
       // console.log(streakId)
-      getStreak(streakId)
+      // getStreak(streakId)
 
       // const streakSql =
       // "WITH Streak AS (SELECT * From habitsCalendar WHERE id=" + item.id + "," +

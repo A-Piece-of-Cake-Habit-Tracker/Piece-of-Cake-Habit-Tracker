@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 // import { View, Text, StatusBar, TextInput, Button, FlatList } from "react-native";
 import { AppRegistry, Dimensions, Alert, View, StatusBar, TextInput, FlatList, SectionList } from "react-native";
 import * as SQLite from "expo-sqlite";
-import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Pressable, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog, Slide } from 'native-base';
+import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Pressable, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog, Slide, Flex } from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import {LogBox} from 'react-native';
@@ -10,6 +10,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import { useNavigation } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import OutsideView from 'react-native-detect-press-outside';
+import { LinearGradient } from 'expo-linear-gradient';
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -68,7 +69,6 @@ const App =() =>{
     <Stack.Navigator>
         <Stack.Screen component= {Main} name ="Main" options={{headerShown:false}} />
         <Stack.Screen component= {Statistics} name = "Statistics" options={{headerShown:false}}/>
-        <Stack.Screen component= {Stats_1_Habit} name = "Stats_1_Habit" options={{headerShown:false}}/>
     </Stack.Navigator>
   </NavigationContainer>
   );
@@ -1066,6 +1066,13 @@ const Main = ({navigation}) => {
   const Statistics = ({navigation}) => {
     const [date, setDate] = useState(null); //ADDED
     const [habits, setHabits] = useState([]);
+    const [isViewHabitStatistics, setIsViewHabitStatistics] = React.useState(false); //FOR VIEW HABIT STATISTICS
+    const [habitNameDisplay, setHabitNameDisplay] = useState("");
+    const [recurrenceDisplay, setRecurrenceDisplay] = useState("");
+    const [goalDisplay, setGoalDisplay] = useState("");
+    const [formOfMeasurementDisplay, setFormOfMeasurementDisplay] = useState("");
+    const [skipsDisplay, setSkipsDisplay] = useState("");
+    const [itemID, setitemID] = useState(0);
     //useEffect added
     useEffect(() => {
       let today = new Date();
@@ -1196,7 +1203,7 @@ const Main = ({navigation}) => {
                 shadow={3}
                 flexDirection="row"
                 // style={{flexWrap: "wrap", overflow: "hidden"}}
-                onPress={() => navigation.navigate("Stats_1_Habit")} 
+                onPress={() => viewHabitStatistics(item)} 
                 style={{
                   flexWrap: "wrap",
                   overflow: "hidden",
@@ -1238,13 +1245,29 @@ const Main = ({navigation}) => {
       );
     };
 
+    const viewHabitStatistics = (item) => {
+      setIsViewHabitStatistics(true);
+
+      console.log("viewed " + item.habitName);
+      setitemID(item.id);
+      setHabitNameDisplay(item.habitName);
+      setRecurrenceDisplay(item.recurrence);
+      setGoalDisplay(item.goal);
+    }
+
     useEffect(async () => {
       await getHabits();
     }, []);
 
 
+    const config = {
+      dependencies: {
+        "linear-gradient": LinearGradient
+      }
+    };
+
     return (
-      <NativeBaseProvider>
+      <NativeBaseProvider config={config}>
         <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
         {/* ===================================== HEADER ===================================== */}
           <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
@@ -1268,8 +1291,68 @@ const Main = ({navigation}) => {
                 </VStack>
                 </Center>
           </ScrollView>
+
           <Bottom />
         </Center>
+
+        <Slide in={isViewHabitStatistics} placement="top">
+              <Box p={0} bg="#FFFFFF"
+              width={width} height = {height} maxHeight = "100%"
+              position="absolute" top="0" rounded = "70" 
+              >
+                <VStack pl={2} alignItems="flex-start" >
+                  <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
+                    <Box></Box>
+                    <Box alignItems="center">
+                      <Button variant="ghost" onPress={() => setIsViewHabitStatistics(false)} >
+                        <Text fontSize="lg" fontWeight="normal" color="cyan.600">
+                          Go Back
+                        </Text>
+                      </Button>
+                    </Box>
+                  </HStack>
+          
+                  <Text mt={5} fontSize="4xl" fontWeight="bold" color="black" alignSelf={"center"}>
+                    {habitNameDisplay}
+                  </Text>
+                  <Text  fontSize="sm" fontWeight="semibold" color="trueGray.400" alignSelf={"center"}>
+                    {goalDisplay} time/s every {recurrenceDisplay} day/s
+                  </Text>
+                  <Box mt={5} width = "350" height="75" borderColor="#F4F4F4" borderWidth={3} rounded = "35"  alignSelf={"center"}>
+                    <Flex mx="5" direction="row" justify="space-evenly" h="60">
+                      <VStack space="0.01">
+                        <Text mt="1" fontSize="xl" fontWeight="bold" color="cyan.600">
+                          10 day/s
+                        </Text>
+                        <Text fontSize="sm" fontWeight="semibold" color="trueGray.400">
+                          Current Streak 
+                        </Text>
+                      </VStack>
+                      <Divider mt={2} orientation="vertical" h="25" bg="#F4F4F4" thickness={3} alignSelf={"center"} mx="1" />
+                      <VStack space="0.01">
+                        <Text mt="1" fontSize="xl" fontWeight="bold" color="cyan.600">
+                          12 day/s
+                        </Text>
+                        <Text fontSize="sm" fontWeight="semibold" color="trueGray.400">
+                          Best Streak 
+                        </Text>
+                      </VStack>
+                    </Flex>
+                  </Box>
+                  <Box width="350" height="250" bg={{
+                    linearGradient: {
+                      colors: ["#11BCE1", "#66B1F2"],
+                      start: [0, 0],
+                      end: [0, 1]
+                    }
+                  }} p={3} rounded="35" mt={5} alignSelf={"center"} shadow={9}>
+                  <Text fontSize="sm" fontWeight="semibold" color="white" alignSelf={"center"}>
+                    April 2022
+                  </Text>
+                  </Box>
+                </VStack>
+              </Box>
+            </Slide>
       </NativeBaseProvider>
     );
   };
@@ -1322,68 +1405,6 @@ const Main = ({navigation}) => {
         </Center>
     </VStack>
     </NativeBaseProvider>;
-  };
-
-  const Stats_1_Habit = ({navigation,item}) => {
-    const [habits, setHabits] = useState([]);
-    
-    const getHabits = () => {
-      db.transaction(txn => {
-        txn.executeSql(
-          `SELECT * FROM habits ORDER BY id DESC`,
-          [],
-          (sqlTxn, res) => {
-            console.log("habits retrieved successfully");
-            let len = res.rows.length;
-  
-            if (len > 0) {
-              let results = [];
-              for (let i = 0; i < len; i++) {
-                let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress });
-              }
-            
-              setHabits(results);
-              console.log("habit results" + results);
-            } else {
-              setHabits([]);
-              console.log("no more habits");
-            }
-          },
-          error => {
-            console.log("error on getting habits " + error.message);
-          },
-        );
-      });
-    };
-
-    useEffect(async () => {
-      await getHabits();
-    }, []);
-  
-    return (
-      <NativeBaseProvider>
-        <VStack pl={2} alignItems="flex-start" >
-          <HStack width={375} maxWidth="100%" space={3} justifyContent="space-between" pt={StatusBar.currentHeight + 15}>
-            <Box></Box>
-            <Box alignItems="center">
-              <Button variant="ghost" onPress={() => navigation.navigate("Statistics")} >
-                <Text fontSize="lg" fontWeight="normal" color="cyan.600">
-                  Go Back
-                </Text>
-              </Button>
-            </Box>
-          </HStack>
-  
-          <Text mt={5} fontSize="4xl" fontWeight="bold" color="black" alignSelf={"center"}>
-            Habit Name
-          </Text>
-          <Text  fontSize="sm" fontWeight="normal" color="trueGray.400" alignSelf={"center"}>
-            8 time/s every 1 day/s
-          </Text>
-        </VStack>
-      </NativeBaseProvider>
-    );
   };
 
   export default App;

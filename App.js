@@ -250,7 +250,7 @@ const Main = ({navigation}) => {
           [],
           (sqlTxn, res) => {
             var len = res.rows.length;
-            console.log("len: " +len);
+            // console.log("len: " +len);
             for (let i = 0; i < len; i++) {
                  console.log("# " + res.rows.item(i)["habitName"] + " " + res.rows.item(i)["progress"] + " " + res.rows.item(i)["date"])
              }
@@ -288,9 +288,9 @@ const Main = ({navigation}) => {
           [],
           (sqlTxn, res) => {
             lastDateStored = res.rows.item(0)["lastDateStored"]
-            console.log("lastDateStored: " + lastDateStored);
-            console.log("!!!!! currentDate " + currentDate)
-            console.log("!!!!! lastDateStored " + lastDateStored)
+            // console.log("lastDateStored: " + lastDateStored);
+            // console.log("!!!!! currentDate " + currentDate)
+            // console.log("!!!!! lastDateStored " + lastDateStored)
 
 
             if (lastDateStored != null && lastDateStored != currentDate) {
@@ -358,7 +358,7 @@ const Main = ({navigation}) => {
             str += incomplete[i] + ", ";
           }
         }
-        console.log(str);
+        // console.log(str);
         Alert.alert(
           "Incomplete habit details",
           str,
@@ -407,7 +407,7 @@ const Main = ({navigation}) => {
 
       let date = year+'-'+month+'-'+day;
 
-      console.log("++ " + date)
+      // console.log("++ " + date)
 
       const insertSql =
       "INSERT INTO habits (habitName,recurrence,formOfMeasurement,goal,progress,skips,skipped,date) VALUES ('" +
@@ -428,7 +428,7 @@ const Main = ({navigation}) => {
       date +
       "')";
 
-      console.log(insertSql)
+      // console.log(insertSql)
   
       db.transaction(txn => {
         txn.executeSql(
@@ -484,7 +484,7 @@ const Main = ({navigation}) => {
             str += incomplete[i] + ", ";
           }
         }
-        console.log(str);
+        // console.log(str);
         Alert.alert(
           "Incomplete habit details",
           str,
@@ -674,9 +674,9 @@ const Main = ({navigation}) => {
       "' WHERE id=" +
       item.id;
 
-      console.log(updateHabitsTable)
+      // console.log(updateHabitsTable)
 
-      console.log("!!! updating: " + item.id)
+      // console.log("!!! updating: " + item.id)
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -691,18 +691,18 @@ const Main = ({navigation}) => {
         );
       });
 
-      console.log('--- doesExist: ' + doesExist)
+      // console.log('--- doesExist: ' + doesExist)
 
       let currentDoesExist = false;
 
       if (item.progress < item.goal) {
-        console.log(">>>>>>> progress < goal from habitsCalendar")
+        // console.log(">>>>>>> progress < goal from habitsCalendar")
         setDoesExist(false)
         currentDoesExist = false;
-        console.log('==== doesExist: ' + currentDoesExist)
+        // console.log('==== doesExist: ' + currentDoesExist)
         if (item.progress == item.goal-1 && doesExist == true) {
           // delete
-          console.log(">>>>>>> delete habit from habitsCalendar")
+          // console.log(">>>>>>> delete habit from habitsCalendar")
           const deleteHabitsCalendarTable =
             "DELETE FROM habitsCalendar where id=" +
             item.id +
@@ -727,12 +727,12 @@ const Main = ({navigation}) => {
       }
       // return 1 if id is in habitsCalendar
       else if (item.progress == item.goal && doesExist == false) {
-          console.log(">>>>>>> add habit to habitsCalendar")
+          // console.log(">>>>>>> add habit to habitsCalendar")
           setDoesExist(true)
           currentDoesExist = true;
-          console.log('==== doesExist: ' + currentDoesExist)
+          // console.log('==== doesExist: ' + currentDoesExist)
       
-          console.log(date)
+          // console.log(date)
           // if habit is done, add entry to habitsCalendar
           const insertHabitsCalendarTable =
           "INSERT INTO habitsCalendar (id,date) VALUES (" +
@@ -764,7 +764,7 @@ const Main = ({navigation}) => {
           [],
           (sqlTxn, res) => {
             let count = res.rows.item(0)["count(*)"]
-            console.log("count: " + count);
+            // console.log("count: " + count);
           },
           error => {
             console.log("error on counting " + error.message);
@@ -807,7 +807,7 @@ const Main = ({navigation}) => {
         return
       }
 
-      console.log("updating: " + itemID)
+      // console.log("updating: " + itemID)
       const skipSql =
       "UPDATE habits SET habitName = '" +
       habitNameDisplay +
@@ -826,7 +826,7 @@ const Main = ({navigation}) => {
       " WHERE id=" +
       itemID;
 
-      console.log(skipSql)
+      // console.log(skipSql)
       db.transaction(function (tx) {
         tx.executeSql(
           skipSql,
@@ -880,9 +880,9 @@ const Main = ({navigation}) => {
       //   );
       // });
 
-      console.log("!!!! count: " + countHabitsCalendarRows);
+      // console.log("!!!! count: " + countHabitsCalendarRows);
         
-      console.log("streak id: ", id)
+      // console.log("streak id: ", id)
 
       const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
 
@@ -914,7 +914,7 @@ const Main = ({navigation}) => {
           (sqlTxn, res) => {
             setBestStreak(res.rows.item(0)["best_streak"]);
             // console.log("best streak: " + bestStreak);÷
-            console.log("actual best streak: " + bestStreak);
+            // console.log("actual best streak: " + bestStreak);
           },
           error => {
             console.log("error on getting best streak " + error.message);
@@ -933,7 +933,7 @@ const Main = ({navigation}) => {
             } else {
               setCurrentStreak(res.rows.item(0)["current_streak"]);
             }
-            console.log("actual current streak: " + currentStreak);
+            // console.log("actual current streak: " + currentStreak);
           },
           error => { 
             console.log("error on getting current streak " + error.message);
@@ -1416,6 +1416,8 @@ const Main = ({navigation}) => {
     const [currentStreak, setCurrentStreak] = useState(null);
     const [bestStreak, setBestStreak] = useState(null);
     const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
+    const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
+    const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
 
     //useEffect added
     useEffect(() => {
@@ -1537,7 +1539,7 @@ const Main = ({navigation}) => {
     const getBestStreak = (item) => {
 
       id = item.id
-      console.log("streak id: ", id)
+      // console.log("streak id: ", id)
 
       const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
 
@@ -1565,7 +1567,7 @@ const Main = ({navigation}) => {
           (sqlTxn, res) => {
             setBestStreak(res.rows.item(0)["best_streak"]);
             // console.log("best streak: " + bestStreak);÷
-            console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
+            // console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
             item.bestStreak = res.rows.item(0)["best_streak"];
           },
           error => {
@@ -1596,7 +1598,7 @@ const Main = ({navigation}) => {
     const getCurrentStreak = (item) => {
 
       id = item.id
-      console.log("streak id: ", id)
+      // console.log("streak id: ", id)
 
       // const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
 
@@ -1632,13 +1634,33 @@ const Main = ({navigation}) => {
       //     },
       //   );
       // });
+
+      let yesterday = new Date()
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      year = yesterday.getFullYear()
+      month = yesterday.getMonth()+1
+      day = yesterday.getDate()
+
+      if (month < 10) {
+        month = '0' + month
+      }
+
+      if (day < 10) {
+        day = '0' + day
+      }
+
+      let yesterdayDate = year+'-'+month+'-'+day;
+
+      // console.log(yesterdayDate);
+
       db.transaction(function (tx) {
         tx.executeSql(
           currentStreakSql,
           [],
           (sqlTxn, res) => {
             let latestDate = res.rows.item(0)["latest_date"];
-            if (date != latestDate) {
+            if (date != latestDate && latestDate != yesterdayDate) {
               // setCurrentStreak(0);
               item.currentStreak = 0;
             } else {
@@ -1646,7 +1668,7 @@ const Main = ({navigation}) => {
               item.currentStreak = res.rows.item(0)["current_streak"];
             }
             // console.log("actual current streak: " + item.currentStreak);
-            console.log(item.habitName + " actual current streak: " + res.rows.item(0)["current_streak"]);
+            // console.log(item.habitName + " actual current streak: " + res.rows.item(0)["current_streak"]);
           },
           error => { 
             console.log("error on getting current streak " + error.message);
@@ -1656,9 +1678,9 @@ const Main = ({navigation}) => {
     }
 
     const renderStatistics = ({ item }) => {
-      console.log(item)
+      // console.log(item)
 
-      console.log(habits)
+      // console.log(habits)
 
       for (let i = 0; i < habits.length; i++) {
         // console.log(habits[i].habitName)
@@ -1721,11 +1743,13 @@ const Main = ({navigation}) => {
     const viewHabitStatistics = (item) => {
       setIsViewHabitStatistics(true);
 
-      console.log("viewed " + item.habitName);
+      console.log("!!!!!!!! viewed " + item.habitName + " " + item.bestStreak + " " + item.currentStreak);
       setitemID(item.id);
       setHabitNameDisplay(item.habitName);
       setRecurrenceDisplay(item.recurrence);
       setGoalDisplay(item.goal);
+      setCurrentStreakDisplay(item.currentStreak);
+      setBestStreakDisplay(item.bestStreak);
     }
 
     useEffect(async () => {
@@ -1795,7 +1819,7 @@ const Main = ({navigation}) => {
                     <Flex mx="5" direction="row" justify="space-evenly" h="60">
                       <VStack space="0.01">
                         <Text mt="1" fontSize="xl" fontWeight="bold" color="cyan.600">
-                          10 day/s
+                          {currentStreakDisplay} day/s
                         </Text>
                         <Text fontSize="sm" fontWeight="semibold" color="trueGray.400">
                           Current Streak 
@@ -1804,7 +1828,7 @@ const Main = ({navigation}) => {
                       <Divider mt={2} orientation="vertical" h="25" bg="#F4F4F4" thickness={3} alignSelf={"center"} mx="1" />
                       <VStack space="0.01">
                         <Text mt="1" fontSize="xl" fontWeight="bold" color="cyan.600">
-                          12 day/s
+                          {bestStreakDisplay} day/s
                         </Text>
                         <Text fontSize="sm" fontWeight="semibold" color="trueGray.400">
                           Best Streak 

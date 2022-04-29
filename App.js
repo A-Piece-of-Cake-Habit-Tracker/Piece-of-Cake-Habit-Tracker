@@ -675,6 +675,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
+                                disabled= {item.skipped==0 ? false:true}
                                 _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
                                 rounded="full"
@@ -694,6 +695,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
+                                disabled= {item.skipped==0 ? false:true}
                                 _pressed={{bgColor:'danger.500'}}
                                 
                                 rounded="full"

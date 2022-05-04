@@ -24,37 +24,21 @@ function Bottom () {
   var height = Dimensions.get('window').height;
   var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
-  return <NativeBaseProvider>
-      <Box flexDirection="row" alignItems="center" width={width} height = "125" style={{backgroundColor: "#10BCE1"}} m="0">
+  const [selected, setSelected] = useState(1);
+  const config = {
+    dependencies: {
+      "linear-gradient": LinearGradient
+    }
+  };
+  return <NativeBaseProvider config={config}>
+      <Box flexDirection="row" alignItems="center" width={width} height = "125" bg={{linearGradient: {colors: ["#25BAE5", "#69B2F4"], start: [0, 0], end: [0, 1]}}} m="0">
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-            <Box alignItems="center">
-              <IconButton 
-              variant = "unstyled"
-              onPress={() => navigation.navigate("Main")} 
-              icon={<Icon as={MaterialCommunityIcons} name="home-variant" />} _icon={{
-                  color: "rgb(128,233,250)",
-                  size: "lg"
-                }}_pressed={{
-                  _icon: {
-                    color: "white"
-                  }
-                }}
-              />
-            </Box>
-            <Box alignItems="center">
-              <IconButton 
-                variant = "unstyled"
-                onPress={() => navigation.navigate("Statistics")} 
-                icon={<Icon as={Entypo} name="bar-graph" />} _icon={{
-                    color: "rgb(128,233,250)",
-                    size: "lg"
-                  }} _pressed={{
-                     _icon: {
-                        color: "white",
-                      }
-                  }}
-              />
-            </Box>
+            <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
+                <Icon as={MaterialCommunityIcons} name="home-variant" size="lg" color="white"/>
+            </Pressable>
+            <Pressable mt="1" alignItems="center" opacity={selected === 1 ? 1 : 0.5} onPress={() => {navigation.navigate("Statistics"); setSelected(1)}}>
+                <Icon as={Entypo} name="bar-graph" size="lg" color="white"/>
+            </Pressable>
         </HStack>
       </Box> 
       </NativeBaseProvider>;
@@ -942,6 +926,12 @@ const Main = ({navigation}) => {
       });
     }
 
+    const config = {
+      dependencies: {
+        "linear-gradient": LinearGradient
+      }
+    };
+
     const renderHabit = ({ item }) => {
       // const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
       // console.log(item)
@@ -952,7 +942,7 @@ const Main = ({navigation}) => {
       // getStreak(streakId)
       
       return (
-        <NativeBaseProvider>
+        <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
                 bg= {item.skipped==0 ? "white": "trueGray.300"}
@@ -970,10 +960,18 @@ const Main = ({navigation}) => {
                 >
                     <VStack h="20" w="55"
                     // bg="cyan.600"
-                    style={
+                    bg={
                       item.progress === item.goal?
-                      {backgroundColor: "#08E17C"}
-                      : {backgroundColor: "#10BCE1"}
+                      {linearGradient: {
+                        colors: ["#19EDC4", "#08E17A"],
+                        start: [0, 0],
+                        end: [0, 1]
+                      }}
+                      : {linearGradient: {
+                          colors: ["#0ABEE0", "#71B0F4"],
+                          start: [0, 0],
+                          end: [0, 1]
+                        }}
                     }
                     alignItems="center"
                     justifyContent="center"> 
@@ -1677,6 +1675,12 @@ const Main = ({navigation}) => {
       });
     }
 
+    const config = {
+      dependencies: {
+        "linear-gradient": LinearGradient
+      }
+    };
+
     const renderStatistics = ({ item }) => {
       // console.log(item)
 
@@ -1689,7 +1693,7 @@ const Main = ({navigation}) => {
       }
       
       return (
-        <NativeBaseProvider>
+        <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
                 bg="white"
@@ -1726,8 +1730,14 @@ const Main = ({navigation}) => {
                     <Divider my={2} orientation="vertical" bg="transparent"/>
                     <VStack h="20" w="55"
                     // bg="cyan.600"
-                    style={
-                    {backgroundColor: "#D884FD"}
+                    bg={
+                      {
+                        linearGradient: {
+                          colors: ["#DB84FD", "#9C89EC"],
+                          start: [0, 0],
+                          end: [0, 1]
+                        }
+                      }
                     }
                     alignItems="center"
                     justifyContent="center"> 
@@ -1756,13 +1766,6 @@ const Main = ({navigation}) => {
       await getHabits();
     }, []);
 
-
-    const config = {
-      dependencies: {
-        "linear-gradient": LinearGradient
-      }
-    };
-
     return (
       <NativeBaseProvider config={config}>
         <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
@@ -1778,8 +1781,7 @@ const Main = ({navigation}) => {
           </HStack>
           <ScrollView maxW="375" h="485">
                 <Center>
-                <VStack alignItems="center">
-                  <AllHabits/>
+                <VStack mt={5} alignItems="center">
                   <FlatList
                   data={habits}
                   renderItem={renderStatistics}
@@ -1852,56 +1854,6 @@ const Main = ({navigation}) => {
             </Slide>
       </NativeBaseProvider>
     );
-  };
-
-    function AllHabits () { 
-    return <NativeBaseProvider>
-      <VStack mt={5} alignItems="center">
-      <Center>
-          <Pressable w="80" h="20" mb="4" ml="4" mr="4"
-          bg="white"
-          // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
-          rounded="2xl"
-          shadow={3}
-          flexDirection="row"
-          // style={{flexWrap: "wrap", overflow: "hidden"}}
-          style={{
-            flexWrap: "wrap",
-            overflow: "hidden",
-          }}
-          // onPress={() => alert("hi")}
-          >
-              <VStack w="264" flexDirection="row" justifyContent={"space-between"}>
-                <VStack pt={3} pb={3} pr={5} pl={5}>
-                    {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
-                    <HStack alignItems={"flex-start"}>
-                      <Text fontSize="xl" fontWeight="bold" color="black">All Habits</Text>
-                    </HStack>
-                    <HStack alignItems={"flex-start"}>
-                        <Text fontSize="sm"
-                        fontWeight="bold"
-                        // color="cyan.600"
-                        style={
-                          {color: "#10BCE1"}
-                        }>
-                          Best Streak: 3 day/s
-                        </Text>
-                    </HStack>
-                    {/* <Text>{item.formOfMeasurement}</Text>        */}
-                </VStack>
-              </VStack>
-              <Divider my={2} orientation="vertical" bg="transparent"/>
-              <VStack h="20" w="55" pr={0}
-              // bg="cyan.600"
-              style={{backgroundColor: "#10BCE1"}}
-              alignItems="center"
-              justifyContent="center"> 
-                <Text ml="-1" alignItems="center" justifyContent="center" fontSize="2xl" fontWeight="bold" color="white"> 3 </Text>
-              </VStack>
-          </Pressable>
-        </Center>
-    </VStack>
-    </NativeBaseProvider>;
   };
 
   export default App;

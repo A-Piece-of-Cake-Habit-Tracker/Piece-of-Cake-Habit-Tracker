@@ -93,6 +93,8 @@ const Main = ({navigation}) => {
   const [bestStreak, setBestStreak] = useState(null);
   const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
 
+  const [userName, setUserName] = useState("");
+
     //useEffect added
     useEffect(() => {
       let today = new Date();
@@ -224,8 +226,24 @@ const Main = ({navigation}) => {
           },
         );
       });
+
+      db.transaction(txn => {
+        txn.executeSql(
+          //`DROP TABLE name`,
+          `CREATE TABLE IF NOT EXISTS name (id INTEGER PRIMARY KEY AUTOINCREMENT, userName TEXT)`,
+          [],
+          (sqlTxn, res) => {
+            console.log("name: table created successfully");
+          },
+          error => {
+            console.log("name: error on creating table " + error.message);
+          },
+        );
+      });
+
     };
-  
+    
+
     const checkIfReset = () => {
 
       db.transaction(function (tx) {
@@ -309,6 +327,27 @@ const Main = ({navigation}) => {
         );
       });
     }
+
+    const addName = () => {
+      const insertSql =
+      "INSERT INTO name (userName) VALUES ('" +
+      userName +
+      "')";
+
+      db.transaction(txn => {
+        txn.executeSql(
+          insertSql,
+          [],
+          (sqlTxn, res) => {
+            console.log(`Updated successfully: ${userName}`);
+          },
+          error => {
+            console.log("error on updating name " + error.message);
+          },
+        );
+      });
+
+    };
 
     const addHabit = () => {
       const incomplete = []
@@ -580,6 +619,34 @@ const Main = ({navigation}) => {
           }        
         }
       }
+
+    const getName = () => {
+        db.transaction(txn => {
+          txn.executeSql(
+            `SELECT * FROM name ORDER BY id DESC LIMIT 1`,
+            [],
+            (sqlTxn, res) => {
+              console.log("name retrieved successfully");
+              let len = res.rows.length;
+  
+              if (len > 0) {
+                let results;
+                let item = res.rows.item(0);
+                results=item.userName;
+              
+                setUserName(results);
+                console.log("name " + results);
+              } else {
+                setUserName("");
+                console.log("no name listed");
+              }
+            },
+            error => {
+              console.log("error on getting name " + error.message);
+            },
+          );
+        });
+    };
 
     const getHabits = () => {
       db.transaction(txn => {
@@ -985,6 +1052,7 @@ const Main = ({navigation}) => {
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
                           <HStack alignItems={"flex-start"}>
+                            {item.skipped==0 &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
@@ -995,6 +1063,19 @@ const Main = ({navigation}) => {
                               }>
                                 Goal: {item.goal} time/s
                               </Text>
+                            }
+                            {item.skipped==1 &&
+                              <Text fontSize="sm"
+                              fontWeight="bold"
+                              // color="cyan.600"
+                              style={
+                                item.progress === item.goal ?
+                                {color: "#08E17C"}
+                                : {color: "#10BCE1"}
+                              }>
+                                Do in {item.recurrence} day/s
+                              </Text>
+                            }
                           </HStack>
                           
                           {/* <Text>{item.formOfMeasurement}</Text>        */}
@@ -1110,6 +1191,7 @@ const Main = ({navigation}) => {
       await createTables();
       await getHabits();
       await checkIfReset();
+      await getName();
     }, []);
   
     return (
@@ -1122,7 +1204,15 @@ const Main = ({navigation}) => {
                 <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
                     Hey there,
                 </Text>
-                <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                <Input variant="unstyled" 
+                placeholder="(Name)" 
+                mt={-3} fontSize="4xl" 
+                fontWeight="bold" 
+                color="black" 
+                value={userName} 
+                onChangeText={setUserName}
+                onSubmitEditing={addName}
+                />
                 <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
             </VStack>
             <Box alignItems="center">
@@ -1417,6 +1507,7 @@ const Main = ({navigation}) => {
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
 
+    const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
     useEffect(() => {
       let today = new Date();
@@ -1691,7 +1782,7 @@ const Main = ({navigation}) => {
         getBestStreak(habits[i]);
         getCurrentStreak(habits[i]);
       }
-      
+
       return (
         <NativeBaseProvider config={config}>
             <Center>
@@ -1762,7 +1853,36 @@ const Main = ({navigation}) => {
       setBestStreakDisplay(item.bestStreak);
     }
 
+    const getName = () => {
+      db.transaction(txn => {
+        txn.executeSql(
+          `SELECT * FROM name ORDER BY id DESC LIMIT 1`,
+          [],
+          (sqlTxn, res) => {
+            console.log("name retrieved successfully");
+            let len = res.rows.length;
+
+            if (len > 0) {
+              let results;
+              let item = res.rows.item(0);
+              results=item.userName;
+            
+              setuserNameDisplay(results);
+              console.log("name " + results);
+            } else {
+              setuserNameDisplay("");
+              console.log("no name listed");
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
+    };
+
     useEffect(async () => {
+      await getName();
       await getHabits();
     }, []);
 
@@ -1775,7 +1895,7 @@ const Main = ({navigation}) => {
                   <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
                       Good job,
                   </Text>
-                  <Input variant="unstyled" placeholder="(Name)" mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                  <Input variant="unstyled" placeholder="(Name)" value={userNameDisplay} mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
                   <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
               </VStack>
           </HStack>

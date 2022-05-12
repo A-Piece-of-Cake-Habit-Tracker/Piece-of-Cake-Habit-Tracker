@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import OutsideView from 'react-native-detect-press-outside';
 import { LinearGradient } from 'expo-linear-gradient';
+import { insert } from "formik";
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -194,7 +195,7 @@ const Main = ({navigation}) => {
             goal INTEGER,
             progress INTEGER,
             skips INTEGER,
-            skipped BOOL,
+            skipped INTEGER,
             date DATE
             )`,
           [],
@@ -293,15 +294,14 @@ const Main = ({navigation}) => {
             // console.log("lastDateStored: " + lastDateStored);
             // console.log("!!!!! currentDate " + currentDate)
             // console.log("!!!!! lastDateStored " + lastDateStored)
-
+            
+            if(lastDateStored)
 
             if (lastDateStored != null && lastDateStored != currentDate) {
               console.log("HMM RESET TO 0!")
 
               const resetSql =
-              "UPDATE habits SET progress=0, date='" +
-              currentDate + "'"
-              ;
+              "UPDATE habits SET progress=0";
           
               db.transaction(txn => {
                 txn.executeSql(
@@ -325,6 +325,48 @@ const Main = ({navigation}) => {
             console.log("error on getting lastDateStored " + error.message);
           },
         );
+
+      //reset <skipped> according to recurrence
+        let skippedSql =
+        "UPDATE habits SET skipped=0 WHERE id IN (";
+
+        tx.executeSql(
+          "SELECT id, date, recurrence FROM habits",
+          [],
+          (sqlTxn, res) => {
+            var len = res.rows.length;
+
+            for(var i=0; i < len; i++){
+              var habitId = res.rows.item(i)["id"];
+              var habitDate = res.rows.item(i)["date"];
+              var habitRec = res.rows.item(i)["recurrence"];
+              console.log((today.getTime() - Date.parse(habitDate))/(1000*3600*24), habitRec)
+              if((today.getTime() - Date.parse(habitDate))/(1000*3600*24) > habitRec){
+                skippedSql = skippedSql + habitId + ",";
+              }
+            }
+            if(skippedSql.slice(-1) == ","){
+              skippedSql = skippedSql.slice(0, -1) + ")";
+            }
+            else{
+              skippedSql = skippedSql + ")";
+            }
+            console.log(skippedSql);
+        
+            db.transaction(txn => {
+              txn.executeSql(
+                skippedSql,
+                [],
+                (sqlTxn, res) => {
+                  console.log(`skipped reset successfully`);
+                  getHabits();
+                },
+                error => {
+                  console.log("error on resetting skipped " + error.message);
+                },
+              );
+            });
+        });
       });
     }
 
@@ -348,6 +390,7 @@ const Main = ({navigation}) => {
       });
 
     };
+
 
     const addHabit = () => {
       const incomplete = []
@@ -452,7 +495,7 @@ const Main = ({navigation}) => {
       "')";
 
       // console.log(insertSql)
-  
+
       db.transaction(txn => {
         txn.executeSql(
           insertSql,
@@ -465,14 +508,16 @@ const Main = ({navigation}) => {
             setRecurrence("");
             setFormOfMeasurement("");
             setGoal("");
+          
           },
           error => {
             console.log("error on adding habit " + error.message);
           },
         );
       });
-
+    
       setShowModal(false);
+      
     };
   
     const editHabit = () => {
@@ -803,6 +848,17 @@ const Main = ({navigation}) => {
                 console.log("error on inserting habit in habitsCalendar: " + error.message);
               },
             );
+
+            tx.executeSql(
+              "UPDATE habits SET date='" + date + "' WHERE id=" + item.id,
+              [],
+              (sqlTxn, res) => {
+                console.log("finished updating date in habits: " + item.id + " " + date);
+              },
+              error => {
+                console.log("error on updating date in habitsCalendar: " + error.message);
+              },
+            );
           });
   
           console.log(insertHabitsCalendarTable)
@@ -849,7 +905,11 @@ const Main = ({navigation}) => {
     function skipHabit() {
       let val=skipsDisplay;
       let skipping=1;
-      if (skipsDisplay!=0){
+      if (isSkip==1){
+        Alert.alert("Already skipped today!");
+        setSkipOpen(false);
+      }
+      else if (skipsDisplay!=0){
         val--;
       }
       else{
@@ -857,6 +917,21 @@ const Main = ({navigation}) => {
         setSkipOpen(false);
         return
       }
+
+      let today = new Date();
+      let year = today.getFullYear();
+      let month = today.getMonth()+1;
+      let day = today.getDate();
+      
+      if (month < 10) {
+        month = '0' + month;
+      }
+
+      if (day < 10) {
+        day = '0' + day;
+      }
+
+      let date = year+'-'+month+'-'+day;
 
       // console.log("updating: " + itemID)
       const skipSql =
@@ -874,10 +949,12 @@ const Main = ({navigation}) => {
       val +
       ",skipped=" +
       skipping +
-      " WHERE id=" +
+      ",date='" +
+      date +
+      "' WHERE id=" +
       itemID;
 
-      // console.log(skipSql)
+      console.log(skipSql)
       db.transaction(function (tx) {
         tx.executeSql(
           skipSql,
@@ -892,6 +969,7 @@ const Main = ({navigation}) => {
       });
       setSkipOpen(false);
       setSkipsDisplay(val);
+      setIsSkip(1);
       getHabits();
     }
 
@@ -1089,7 +1167,7 @@ const Main = ({navigation}) => {
                                 alignItems="center"
                                 variant="ghost"
                                 style={
-                                  item.progress === item.goal ?
+                                  (item.progress === item.goal) || (item.skipped === 1)?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
@@ -1109,7 +1187,7 @@ const Main = ({navigation}) => {
                                 alignItems="center"
                                 variant="solid"
                                 style={
-                                  item.progress === 0 ?
+                                  (item.progress === 0) || (item.skipped === 1) ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
@@ -1191,6 +1269,7 @@ const Main = ({navigation}) => {
       await createTables();
       await getHabits();
       await checkIfReset();
+      //await resetSkip();
       await getName();
     }, []);
   
@@ -1724,6 +1803,7 @@ const Main = ({navigation}) => {
       //   );
       // });
 
+      /*  removed due to addition of calculating using recurrence
       let yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1);
 
@@ -1740,8 +1820,26 @@ const Main = ({navigation}) => {
       }
 
       let yesterdayDate = year+'-'+month+'-'+day;
+      */
+
+      let rec; 
+      let sk;
 
       // console.log(yesterdayDate);
+      db.transaction(function (tx) {
+        tx.executeSql(
+          "SELECT recurrence, skips FROM habits WHERE id=" + id,
+          [],
+          (sqlTxn, res) => {
+            rec = res.rows.item(0)["recurrence"];
+            sk = res.rows.item(0)["skips"];
+            console.log("recurrence and skips retrieved");
+          },
+          error => {
+            console.log("error on retrieving recurrence " + error.message);
+          }
+        )
+      })
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -1749,7 +1847,9 @@ const Main = ({navigation}) => {
           [],
           (sqlTxn, res) => {
             let latestDate = res.rows.item(0)["latest_date"];
-            if (date != latestDate && latestDate != yesterdayDate) {
+            console.log(date + " " + latestDate);
+            console.log("streak day difference:"+(today.getTime() - Date.parse(latestDate))/(1000*3600*24) + " recurrence:" + rec + "("+ rec*(2-sk) +")"); //note: if 2 skips available, only allow <rec> days, if 1 skip, allow <rec>*2 days, if 0 skips, allow <rec>*3 days
+            if (date != latestDate && (today.getTime() - Date.parse(latestDate))/(1000*3600*24) > rec*(3-sk)) { //if difference in days is greater than recurrence, streak is broken
               // setCurrentStreak(0);
               item.currentStreak = 0;
             } else {

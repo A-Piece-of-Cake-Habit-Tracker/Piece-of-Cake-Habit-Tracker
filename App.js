@@ -1060,6 +1060,7 @@ const Main = ({navigation}) => {
       setProgressDisplay(item.progress);
       setFormOfMeasurementOut(item.formOfMeasurement);
       setIsSkip(item.skipped);
+      setUnable(item.unable)
       if (item.formOfMeasurement == 1) {
         setFormOfMeasurementDisplay("Increment");
       } else {
@@ -1664,12 +1665,25 @@ const Main = ({navigation}) => {
                   </VStack>
                 </HStack>
                 <HStack mt={8} space={10} justifyContent="space-evenly">
+                  { unable==1 &&
                   <Button
                   variant="subtle"
                   rounded="lg"
+                  disabled= {unable==1? true:false}
+                  onPress={() => {setSkipOpen(true);}}
+                  isDisabled>
+                    Skip today
+                  </Button>
+                  }
+                  { unable==0 &&
+                  <Button
+                  variant="subtle"
+                  rounded="lg"
+                  disabled= {unable==1? true:false}
                   onPress={() => {setSkipOpen(true);}}>
                     Skip today
                   </Button>
+                  }
                   <Button
                   variant="outline"
                   rounded="lg"

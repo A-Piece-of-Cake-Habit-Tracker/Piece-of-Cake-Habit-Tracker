@@ -2033,7 +2033,7 @@ const Main = ({navigation}) => {
                   <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
                       Good job,
                   </Text>
-                  <Input variant="unstyled" placeholder="(Name)" value={userNameDisplay} mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                  <Input editable={false} variant="unstyled" placeholder="(Name)" value={userNameDisplay} mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
                   <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
               </VStack>
           </HStack>

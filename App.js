@@ -406,15 +406,15 @@ const Main = ({navigation}) => {
         incomplete.push("recurrence")
       }
 
-      if (!formOfMeasurement) {
-        incomplete.push("form of measurement")
-      }
+      // if (!formOfMeasurement) {
+      //   incomplete.push("form of measurement")
+      // }
 
       if (!goal) {
         incomplete.push("goal")
       }
 
-      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+      if (!habitName || !recurrence || !goal) {
         var str = "Please enter the ";
         for(var i = 0; i < incomplete.length; i++) {
           if (incomplete.length == 1){
@@ -483,7 +483,7 @@ const Main = ({navigation}) => {
       "'," +
       recurrence +
       "," +
-      formOfMeasurement +
+      0 +
       "," +
       goal +
       "," +
@@ -534,15 +534,11 @@ const Main = ({navigation}) => {
         incomplete.push("recurrence")
       }
 
-      if (!formOfMeasurement) {
-        incomplete.push("form of measurement")
-      }
-
       if (!goal) {
         incomplete.push("goal")
       }
 
-      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+      if (!habitName || !recurrence || !goal) {
         var str = "Please enter the ";
         for(var i = 0; i < incomplete.length; i++) {
           if (incomplete.length == 1){
@@ -590,7 +586,7 @@ const Main = ({navigation}) => {
         "', recurrence='" +
         recurrence +
         "', formOfMeasurement=" +
-        formOfMeasurement +
+        0 +
         ", goal='" +
         goal +
         "' WHERE id="
@@ -978,6 +974,7 @@ const Main = ({navigation}) => {
     }
 
     function skipHabit() {
+      getHabits();
       let val=skipsDisplay;
       let skipping=1;
       if (isSkip==1){
@@ -1029,7 +1026,7 @@ const Main = ({navigation}) => {
       "' WHERE id=" +
       itemID;
 
-      console.log(skipSql)
+      console.log("???????" + skipSql)
       db.transaction(function (tx) {
         tx.executeSql(
           skipSql,
@@ -1042,10 +1039,11 @@ const Main = ({navigation}) => {
           },
         );
       });
+
+      getHabits();
       setSkipOpen(false);
       setSkipsDisplay(val);
       setIsSkip(1);
-      getHabits();
     }
 
     const viewHabit = (item) => {
@@ -1254,7 +1252,7 @@ const Main = ({navigation}) => {
                           end: [0, 1]
                         }}}
                     style={
-                      (item.skipped==1 || item.unable==1) ?
+                      (item.skipped==1) ?
                       {backgroundColor: "gray"}
                       : item.progress === item.goal?
                       {backgroundColor: "#08E17C"}
@@ -1295,7 +1293,7 @@ const Main = ({navigation}) => {
                                 {color: "#08E17C"}
                                 : {color: "#10BCE1"}
                               }>
-                                Do in {item.daysLeft} day/s
+                                Not today
                               </Text>
                             }
                           </HStack>
@@ -1315,7 +1313,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
-                                disabled= {(item.skipped==1 || item.unable==1)? true:false}
+                                disabled= {(item.skipped==1)? true:false}
                                 _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
                                 rounded="full"
@@ -1335,7 +1333,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
-                                disabled= {(item.skipped==1 || item.unable==1)? true:false}
+                                disabled= {(item.skipped==1)? true:false}
                                 _pressed={{bgColor:'danger.500'}}
                                 
                                 rounded="full"
@@ -1506,7 +1504,7 @@ const Main = ({navigation}) => {
                              />
                         </FormControl>
 
-                        <FormControl isRequired>
+                        {/* <FormControl isRequired>
                             <FormControl.Label>Form of measurement</FormControl.Label>
                         <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"
                         defaultValue={
@@ -1540,7 +1538,7 @@ const Main = ({navigation}) => {
                             </Radio>
                             </HStack>
                         </Radio.Group>
-                        </FormControl>
+                        </FormControl> */}
 
                         <FormControl isRequired>
                             <FormControl.Label>Goal</FormControl.Label>
@@ -1985,7 +1983,7 @@ const Main = ({navigation}) => {
           (sqlTxn, res) => {
             rec = res.rows.item(0)["recurrence"];
             sk = res.rows.item(0)["skips"];
-            console.log("recurrence and skips retrieved");
+            // console.log("recurrence and skips retrieved");
           },
           error => {
             console.log("error on retrieving recurrence " + error.message);

@@ -25,7 +25,7 @@ function Bottom () {
   var height = Dimensions.get('window').height;
   var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(0);
   const config = {
     dependencies: {
       "linear-gradient": LinearGradient
@@ -1187,13 +1187,26 @@ const Main = ({navigation}) => {
         </NativeBaseProvider>
       );
     };
-  
-    useEffect(async () => {
-      await createTables();
-      await getHabits();
-      await checkIfReset();
-      await getName();
+    
+    useEffect(() => {
+      (async function startHome () {
+        await createTables();
+        await getHabits();
+        await checkIfReset();
+        await getName();
+      })();
+    
+      return () => {
+        // this now gets called when the component unmounts
+      };
     }, []);
+  
+    // useEffect(async () => {
+    //   await createTables();
+    //   await getHabits();
+    //   await checkIfReset();
+    //   await getName();
+    // }, []);
   
     return (
       <NativeBaseProvider>
@@ -1507,7 +1520,9 @@ const Main = ({navigation}) => {
     const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
+    const [startHabits, setStartHabits] = useState(false);
     const [habitsFetched, setHabitsFetched] = useState(false);
+    const [streaksFetched, setStreaksFetched] = useState(false);
 
     const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
@@ -1616,7 +1631,7 @@ const Main = ({navigation}) => {
               }
 
               setHabits(results);    
-              setHabitsFetched(true);       
+              setHabitsFetched(!habitsFetched);       
             } else {
               setHabits([]);
               console.log("no more habits");
@@ -1876,7 +1891,7 @@ const Main = ({navigation}) => {
       });
     };
 
-    const getStreaks = () => {
+    const getStreaks = async () => {
       // console.log(results)
 
       let results = habits
@@ -1885,7 +1900,11 @@ const Main = ({navigation}) => {
         getBestStreak(results[i]);
         getCurrentStreak(results[i]);  
       }
+      return results
       setHabits(results) 
+      setStreaksFetched(true)
+      console.log("fetching streaks... " + streaksFetched)
+      console.log(habits)
     }
 
     useEffect(() => {
@@ -1899,26 +1918,17 @@ const Main = ({navigation}) => {
     }, []);
 
     useEffect(() => {
-      console.log("fetching habits...")
-        if (habitsFetched == false) {
-          console.log("fetching habits... " + habitsFetched)
-          getHabits()
-        }
-    }, [habitsFetched])
-    
-    useEffect(() => {
-      if (habitsFetched == true) {
-        console.log("fetching streaks... " + habitsFetched)
-        getStreaks()
+      if (habits.length == 0) {
+        getHabits()
       }
-    }, [habits])
-
-    // useEffect(async () => {
-    //   await getName();
-    //   await getHabits();
-    //   // console.log("STATS CLICKED")
-    //   // console.log(habits);
-    // }, []);
+    })
+    
+    useEffect(async () => {
+      if (habits.length != 0) {
+        let results = await getStreaks()
+        setHabits(results)
+      }
+    }, [habits, habitsFetched])
 
     return (
       <NativeBaseProvider config={config}>

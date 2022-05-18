@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import OutsideView from 'react-native-detect-press-outside';
 import { LinearGradient } from 'expo-linear-gradient';
+import { get } from "react-native/Libraries/Utilities/PixelRatio";
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -89,8 +90,8 @@ const Main = ({navigation}) => {
   const [formOfMeasurementOut, setFormOfMeasurementOut]= useState("");
   const [isSkip,setIsSkip]= useState(false);
   const [doesExist, setDoesExist] = useState(null);
-  const [currentStreak, setCurrentStreak] = useState(null);
-  const [bestStreak, setBestStreak] = useState(null);
+  const [currentStreak, setCurrentStreak] = useState("");
+  const [bestStreak, setBestStreak] = useState("");
   const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
 
   const [userName, setUserName] = useState("");
@@ -1506,6 +1507,7 @@ const Main = ({navigation}) => {
     const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
+    const [habitsFetched, setHabitsFetched] = useState(false);
 
     const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
@@ -1606,13 +1608,15 @@ const Main = ({navigation}) => {
   
             if (len > 0) {
               let results = [];
+
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, bestStreak, currentStreak});
+
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, bestStreak: 0, currentStreak: 0})
               }
-            
-              setHabits(results);
-              console.log("habit results" + results);
+
+              setHabits(results);    
+              setHabitsFetched(true);       
             } else {
               setHabits([]);
               console.log("no more habits");
@@ -1623,73 +1627,85 @@ const Main = ({navigation}) => {
           },
         );
       });
+      // return Promise.resolve(habits);
     };
 
-    const getBestStreak = (item) => {
+    function returnBestStreak(sqlTxn, res) {
+      
+      // setBestStreak(res.rows.item(0)["best_streak"])
+      // console.log("HELLO THERE " + bestStreak)
+      return res.rows.item(0)["best_streak"]
+      // return res.rows.item(0)["best_streak"]
+    }
 
+    let bestStreakPromise = new Promise ((resolve, reject) => {
+
+
+    })
+
+    const getBestStreak = (item) => {
       id = item.id
-      // console.log("streak id: ", id)
+
+      // const [streak, setStreak] = useState(null)
 
       const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
-
-      // const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
-
-      let today = new Date();
-      let year = today.getFullYear();
-      let month = today.getMonth()+1;
-      let day = today.getDate();
-      
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      if (day < 10) {
-        day = '0' + day;
-      }
-
-      let date = year+'-'+month+'-'+day;
 
       db.transaction(function (tx) {
         tx.executeSql(
           bestStreakSql,
           [],
           (sqlTxn, res) => {
-            setBestStreak(res.rows.item(0)["best_streak"]);
-            // console.log("best streak: " + bestStreak);÷
-            // console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
+            // setStreak(res.rows.item(0)["best_streak"]);
             item.bestStreak = res.rows.item(0)["best_streak"];
+            // setBestStreak(res.rows.item(0)["best_streak"])
           },
           error => {
             console.log("error on getting best streak " + error.message);
           },
         );
       });
-      // db.transaction(function (tx) {
-      //   tx.executeSql(
-      //     currentStreakSql,
-      //     [],
-      //     (sqlTxn, res) => {
-      //       let latestDate = res.rows.item(0)["latest_date"];
-      //       if (date != latestDate) {
-      //         setCurrentStreak(0);
-      //       } else {
-      //         setCurrentStreak(res.rows.item(0)["current_streak"]);
-      //       }
-      //       console.log("actual current streak: " + currentStreak);
-      //     },
-      //     error => { 
-      //       console.log("error on getting current streak " + error.message);
-      //     },
-      //   );
-      // });
+
+      // return bestStreak
+      // item.bestStreak = bestStreak;
     }
+
+    // const getBestStreak = (item) => {
+    //   id = item.id
+
+    //   const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
+
+    //   let today = new Date();
+    //   let year = today.getFullYear();
+    //   let month = today.getMonth()+1;
+    //   let day = today.getDate();
+      
+    //   if (month < 10) {
+    //     month = '0' + month;
+    //   }
+
+    //   if (day < 10) {
+    //     day = '0' + day;
+    //   }
+
+    //   let date = year+'-'+month+'-'+day;
+
+    //   db.transaction(function (tx) {
+    //     tx.executeSql(
+    //       bestStreakSql,
+    //       [],
+    //       (sqlTxn, res) => {
+    //         console.log(res.rows.item(0)["best_streak"]);
+    //       },
+    //       error => {
+    //         console.log("error on getting best streak " + error.message);
+    //       },
+    //     );
+    //   });
+    // }
 
     const getCurrentStreak = (item) => {
 
       id = item.id
-      // console.log("streak id: ", id)
-
-      // const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
 
       const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
 
@@ -1708,22 +1724,6 @@ const Main = ({navigation}) => {
 
       let date = year+'-'+month+'-'+day;
 
-      // db.transaction(function (tx) {
-      //   tx.executeSql(
-      //     bestStreakSql,
-      //     [],
-      //     (sqlTxn, res) => {
-      //       setBestStreak(res.rows.item(0)["best_streak"]);
-      //       // console.log("best streak: " + bestStreak);÷
-      //       console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
-      //       item.bestStreak = res.rows.item(0)["best_streak"];
-      //     },
-      //     error => {
-      //       console.log("error on getting best streak " + error.message);
-      //     },
-      //   );
-      // });
-
       let yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1);
 
@@ -1741,7 +1741,6 @@ const Main = ({navigation}) => {
 
       let yesterdayDate = year+'-'+month+'-'+day;
 
-      // console.log(yesterdayDate);
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -1750,14 +1749,10 @@ const Main = ({navigation}) => {
           (sqlTxn, res) => {
             let latestDate = res.rows.item(0)["latest_date"];
             if (date != latestDate && latestDate != yesterdayDate) {
-              // setCurrentStreak(0);
               item.currentStreak = 0;
             } else {
-              // setCurrentStreak(res.rows.item(0)["current_streak"]);
               item.currentStreak = res.rows.item(0)["current_streak"];
             }
-            // console.log("actual current streak: " + item.currentStreak);
-            // console.log(item.habitName + " actual current streak: " + res.rows.item(0)["current_streak"]);
           },
           error => { 
             console.log("error on getting current streak " + error.message);
@@ -1773,15 +1768,15 @@ const Main = ({navigation}) => {
     };
 
     const renderStatistics = ({ item }) => {
-      // console.log(item)
 
-      // console.log(habits)
+      // getBestStreak(item)
+      // getCurrentStreak(item)
 
-      for (let i = 0; i < habits.length; i++) {
-        // console.log(habits[i].habitName)
-        getBestStreak(habits[i]);
-        getCurrentStreak(habits[i]);
-      }
+      // for (let i = 0; i < habits.length; i++) {
+      //   // console.log(habits[i].habitName)
+      //   getBestStreak(habits[i]);
+      //   getCurrentStreak(habits[i]);
+      // }
 
       return (
         <NativeBaseProvider config={config}>
@@ -1881,10 +1876,49 @@ const Main = ({navigation}) => {
       });
     };
 
-    useEffect(async () => {
-      await getName();
-      await getHabits();
+    const getStreaks = () => {
+      // console.log(results)
+
+      let results = habits
+
+      for (let i = 0; i < results.length; i++) {
+        getBestStreak(results[i]);
+        getCurrentStreak(results[i]);  
+      }
+      setHabits(results) 
+    }
+
+    useEffect(() => {
+      (async function startStatistics () {
+        getName();
+      })();
+    
+      return () => {
+        // this now gets called when the component unmounts
+      };
     }, []);
+
+    useEffect(() => {
+      console.log("fetching habits...")
+        if (habitsFetched == false) {
+          console.log("fetching habits... " + habitsFetched)
+          getHabits()
+        }
+    }, [habitsFetched])
+    
+    useEffect(() => {
+      if (habitsFetched == true) {
+        console.log("fetching streaks... " + habitsFetched)
+        getStreaks()
+      }
+    }, [habits])
+
+    // useEffect(async () => {
+    //   await getName();
+    //   await getHabits();
+    //   // console.log("STATS CLICKED")
+    //   // console.log(habits);
+    // }, []);
 
     return (
       <NativeBaseProvider config={config}>

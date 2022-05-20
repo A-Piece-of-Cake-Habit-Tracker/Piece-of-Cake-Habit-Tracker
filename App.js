@@ -214,6 +214,7 @@ const Main = ({navigation}) => {
           `CREATE TABLE IF NOT EXISTS habitsCalendar (
             id INTEGER,
             date DATE,
+            skipped INTEGER,
             CONSTRAINT fk_id
               FOREIGN KEY (id)
               REFERENCES habits(id)
@@ -726,10 +727,6 @@ const Main = ({navigation}) => {
       "' WHERE id=" +
       item.id;
 
-      // console.log(updateHabitsTable)
-
-      // console.log("!!! updating: " + item.id)
-
       db.transaction(function (tx) {
         tx.executeSql(
           updateHabitsTable,
@@ -743,12 +740,11 @@ const Main = ({navigation}) => {
         );
       });
 
-      // console.log('--- doesExist: ' + doesExist)
 
       let currentDoesExist = false;
 
       if (item.progress < item.goal) {
-        // console.log(">>>>>>> progress < goal from habitsCalendar")
+        // console.log(">>>>>>>s progress < goal from habitsCalendar")
         setDoesExist(false)
         currentDoesExist = false;
         // console.log('==== doesExist: ' + currentDoesExist)
@@ -787,11 +783,11 @@ const Main = ({navigation}) => {
           // console.log(date)
           // if habit is done, add entry to habitsCalendar
           const insertHabitsCalendarTable =
-          "INSERT INTO habitsCalendar (id,date) VALUES (" +
+          "INSERT INTO habitsCalendar (id,date,skipped) VALUES (" +
           item.id +
           ",'" +
           date +
-          "')";
+          "', 0)";
 
           db.transaction(function (tx) {
             tx.executeSql(
@@ -825,7 +821,6 @@ const Main = ({navigation}) => {
       });
 
       // print all entries in habitsCalendarList
-
       db.transaction(function (tx) {
         tx.executeSql(
           "SELECT * FROM habitsCalendar" ,
@@ -833,10 +828,12 @@ const Main = ({navigation}) => {
           (sqlTxn, res) => {
             var len = res.rows.length;
             console.log("len: " +len);
+            console.log("==== habitsCalendar ====")
             for (let i = 0; i < len; i++) {
                  let rowID = res.rows.item(i)["id"];
                  let rowDate = res.rows.item(i)["date"];
-                 console.log("+++ " + rowID + " " + rowDate)
+                 let rowSkipped = res.rows.item(i)["skipped"];
+                 console.log("+++ " + rowID + " " + rowDate + " " + rowSkipped)
              }
           },
           error => {
@@ -844,7 +841,6 @@ const Main = ({navigation}) => {
           },
         );
       });
-
     }
 
     function skipHabit() {
@@ -891,6 +887,66 @@ const Main = ({navigation}) => {
           },
         );
       });
+
+      let today = new Date()
+      let year = today.getFullYear()
+      let month = today.getMonth()+1
+      let day = today.getDate()
+      
+      if (month < 10) {
+        month = '0' + month
+      }
+
+      if (day < 10) {
+        day = '0' + day
+      }
+
+      let date = year+'-'+month+'-'+day;      
+
+      const insertHabitsCalendarTable =
+      "INSERT INTO habitsCalendar (id,date,skipped) VALUES (" +
+      itemID +
+      ",'" +
+      date +
+      "', 1)";
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          insertHabitsCalendarTable,
+          [],
+          (sqlTxn, res) => {
+            console.log("finished inserting skipped habit in habitsCalendar: " + itemID + " " + date);
+          },
+          error => {
+            console.log("error on inserting skipped habit in habitsCalendar: " + error.message);
+          },
+        );
+      });
+
+      console.log(insertHabitsCalendarTable)
+
+      // print all entries in habitsCalendarList
+      db.transaction(function (tx) {
+        tx.executeSql(
+          "SELECT * FROM habitsCalendar" ,
+          [],
+          (sqlTxn, res) => {
+            var len = res.rows.length;
+            console.log("len: " +len);
+            console.log("==== habitsCalendar ====")
+            for (let i = 0; i < len; i++) {
+                  let rowID = res.rows.item(i)["id"];
+                  let rowDate = res.rows.item(i)["date"];
+                  let rowSkipped = res.rows.item(i)["skipped"];
+                  console.log("+++ " + rowID + " " + rowDate + " " + rowSkipped)
+              }
+          },
+          error => {
+            console.log("error on counting " + error.message);
+          },
+        );
+      });
+
       setSkipOpen(false);
       setSkipsDisplay(val);
       getHabits();
@@ -915,85 +971,7 @@ const Main = ({navigation}) => {
       }
 
     }
-
-    const getStreak = (id) => {
-      
-      // db.transaction(function (tx) {
-      //   tx.executeSql(
-      //     "SELECT count(*) FROM habitsCalendar WHERE id=" + id,
-      //     [],
-      //     (sqlTxn, res) => {
-      //       let count = res.rows.item(0)["count(*)"]
-      //       setHabitsCalendarRows(count)
-      //     },
-      //     error => {
-      //       console.log("error on counting " + error.message);
-      //     },
-      //   );
-      // });
-
-      // console.log("!!!! count: " + countHabitsCalendarRows);
-        
-      // console.log("streak id: ", id)
-
-      const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
-
-      // console.log(bestStreakSql);
-
-      const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
-
-      // console.log(bestStreakSql);
-
-      let today = new Date();
-      let year = today.getFullYear();
-      let month = today.getMonth()+1;
-      let day = today.getDate();
-      
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      if (day < 10) {
-        day = '0' + day;
-      }
-
-      let date = year+'-'+month+'-'+day;
-
-      db.transaction(function (tx) {
-        tx.executeSql(
-          bestStreakSql,
-          [],
-          (sqlTxn, res) => {
-            setBestStreak(res.rows.item(0)["best_streak"]);
-            // console.log("best streak: " + bestStreak);÷
-            // console.log("actual best streak: " + bestStreak);
-          },
-          error => {
-            console.log("error on getting best streak " + error.message);
-          },
-        );
-      });
-
-      db.transaction(function (tx) {
-        tx.executeSql(
-          currentStreakSql,
-          [],
-          (sqlTxn, res) => {
-            let latestDate = res.rows.item(0)["latest_date"];
-            if (date != latestDate) {
-              setCurrentStreak(0);
-            } else {
-              setCurrentStreak(res.rows.item(0)["current_streak"]);
-            }
-            // console.log("actual current streak: " + currentStreak);
-          },
-          error => { 
-            console.log("error on getting current streak " + error.message);
-          },
-        );
-      });
-    }
-
+ 
     const config = {
       dependencies: {
         "linear-gradient": LinearGradient
@@ -1001,13 +979,6 @@ const Main = ({navigation}) => {
     };
 
     const renderHabit = ({ item }) => {
-      // const [isViewHabit, setIsViewHabit] = React.useState(false); //FOR VIEW HABIT 
-      // console.log(item)
-
-      // console.log("== STREAK OF " + item.id + " " + item.habitName + " ==")
-      let streakId = item.id;
-      
-      // getStreak(streakId)
       
       return (
         <NativeBaseProvider config={config}>
@@ -1094,7 +1065,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
-                                disabled= {item.skipped==0 ? false:true}
+                                // disabled= {item.skipped==0 ? false:true}
                                 _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
                                 rounded="full"
@@ -1114,7 +1085,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
-                                disabled= {item.skipped==0 ? false:true}
+                                // disabled= {item.skipped==0 ? false:true}
                                 _pressed={{bgColor:'danger.500'}}
                                 
                                 rounded="full"
@@ -1643,9 +1614,14 @@ const Main = ({navigation}) => {
     };
 
     const getBestStreak = (item) => {
-      id = item.id
+      let id = item.id
+      let recurrence = item.recurrence
 
-      const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
+      // const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
+
+      const bestStreakSql = "SELECT MAX(streaks) as best_streak FROM ( SELECT streak - skips as streaks FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ) )"
+
+      console.log(bestStreakSql)
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -1664,12 +1640,14 @@ const Main = ({navigation}) => {
     }
 
     const getCurrentStreak = (item) => {
+      let id = item.id
+      let recurrence = item.recurrence
 
-      console.log("HERE!")
+      // const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
 
-      id = item.id
+      const currentStreakSql = "SELECT streak - skips as current_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )"
 
-      const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
+      console.log(currentStreakSql)
 
       let today = new Date();
       let year = today.getFullYear();
@@ -1710,6 +1688,7 @@ const Main = ({navigation}) => {
           [],
           (sqlTxn, res) => {
             let latestDate = res.rows.item(0)["latest_date"];
+            console.log(">>>> ", res.rows.item(0)["current_streak"])
             if (date != latestDate && latestDate != yesterdayDate) {
               item.currentStreak = 0;
             } else {

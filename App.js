@@ -1520,9 +1520,7 @@ const Main = ({navigation}) => {
     const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
-    const [startHabits, setStartHabits] = useState(false);
-    const [habitsFetched, setHabitsFetched] = useState(false);
-    const [streaksFetched, setStreaksFetched] = useState(false);
+    const [habitsFetched, setHabitsFetched] = useState(0);
 
     const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
@@ -1631,7 +1629,7 @@ const Main = ({navigation}) => {
               }
 
               setHabits(results);    
-              setHabitsFetched(!habitsFetched);       
+              setHabitsFetched(habitsFetched + 1);       
             } else {
               setHabits([]);
               console.log("no more habits");
@@ -1642,26 +1640,10 @@ const Main = ({navigation}) => {
           },
         );
       });
-      // return Promise.resolve(habits);
     };
-
-    function returnBestStreak(sqlTxn, res) {
-      
-      // setBestStreak(res.rows.item(0)["best_streak"])
-      // console.log("HELLO THERE " + bestStreak)
-      return res.rows.item(0)["best_streak"]
-      // return res.rows.item(0)["best_streak"]
-    }
-
-    let bestStreakPromise = new Promise ((resolve, reject) => {
-
-
-    })
 
     const getBestStreak = (item) => {
       id = item.id
-
-      // const [streak, setStreak] = useState(null)
 
       const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
 
@@ -1670,55 +1652,20 @@ const Main = ({navigation}) => {
           bestStreakSql,
           [],
           (sqlTxn, res) => {
-            // setStreak(res.rows.item(0)["best_streak"]);
             item.bestStreak = res.rows.item(0)["best_streak"];
-            // setBestStreak(res.rows.item(0)["best_streak"])
+            setHabits(habits)
+            setHabitsFetched(habitsFetched + 1);
           },
           error => {
             console.log("error on getting best streak " + error.message);
           },
         );
       });
-
-      // return bestStreak
-      // item.bestStreak = bestStreak;
     }
 
-    // const getBestStreak = (item) => {
-    //   id = item.id
-
-    //   const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
-
-    //   let today = new Date();
-    //   let year = today.getFullYear();
-    //   let month = today.getMonth()+1;
-    //   let day = today.getDate();
-      
-    //   if (month < 10) {
-    //     month = '0' + month;
-    //   }
-
-    //   if (day < 10) {
-    //     day = '0' + day;
-    //   }
-
-    //   let date = year+'-'+month+'-'+day;
-
-    //   db.transaction(function (tx) {
-    //     tx.executeSql(
-    //       bestStreakSql,
-    //       [],
-    //       (sqlTxn, res) => {
-    //         console.log(res.rows.item(0)["best_streak"]);
-    //       },
-    //       error => {
-    //         console.log("error on getting best streak " + error.message);
-    //       },
-    //     );
-    //   });
-    // }
-
     const getCurrentStreak = (item) => {
+
+      console.log("HERE!")
 
       id = item.id
 
@@ -1768,6 +1715,8 @@ const Main = ({navigation}) => {
             } else {
               item.currentStreak = res.rows.item(0)["current_streak"];
             }
+            setHabits(habits)
+            setHabitsFetched(habitsFetched + 1);
           },
           error => { 
             console.log("error on getting current streak " + error.message);
@@ -1782,37 +1731,24 @@ const Main = ({navigation}) => {
       }
     };
 
-    const renderStatistics = ({ item }) => {
-
-      // getBestStreak(item)
-      // getCurrentStreak(item)
-
-      // for (let i = 0; i < habits.length; i++) {
-      //   // console.log(habits[i].habitName)
-      //   getBestStreak(habits[i]);
-      //   getCurrentStreak(habits[i]);
-      // }
+    function renderStatistics ({ item }) {
 
       return (
         <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
                 bg="white"
-                // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}
                 flexDirection="row"
-                // style={{flexWrap: "wrap", overflow: "hidden"}}
                 onPress={() => viewHabitStatistics(item)} 
                 style={{
                   flexWrap: "wrap",
                   overflow: "hidden",
                 }}
-                // onPress={() => alert("hi")}
                 >
                     <VStack w="264" flexDirection="row" justifyContent={"space-between"}>
                       <VStack pt={3} pb={3} pr={5} pl={5}>
-                          {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
                           <HStack alignItems={"flex-start"}>
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
@@ -1824,13 +1760,10 @@ const Main = ({navigation}) => {
                                 Best Streak: {item.bestStreak} time/s 
                               </Text>
                           </HStack>
-                          
-                          {/* <Text>{item.formOfMeasurement}</Text>        */}
                       </VStack>
                     </VStack>
                     <Divider my={2} orientation="vertical" bg="transparent"/>
                     <VStack h="20" w="55"
-                    // bg="cyan.600"
                     bg={
                       {
                         linearGradient: {
@@ -1900,11 +1833,8 @@ const Main = ({navigation}) => {
         getBestStreak(results[i]);
         getCurrentStreak(results[i]);  
       }
+      
       return results
-      setHabits(results) 
-      setStreaksFetched(true)
-      console.log("fetching streaks... " + streaksFetched)
-      console.log(habits)
     }
 
     useEffect(() => {
@@ -1913,22 +1843,21 @@ const Main = ({navigation}) => {
       })();
     
       return () => {
-        // this now gets called when the component unmounts
       };
     }, []);
 
-    useEffect(() => {
+    useEffect(async () => {
       if (habits.length == 0) {
         getHabits()
       }
     })
     
     useEffect(async () => {
-      if (habits.length != 0) {
+      if (habitsFetched <= habits.length) {
         let results = await getStreaks()
         setHabits(results)
       }
-    }, [habits, habitsFetched])
+    }, [habitsFetched])
 
     return (
       <NativeBaseProvider config={config}>

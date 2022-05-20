@@ -1621,7 +1621,7 @@ const Main = ({navigation}) => {
 
       const bestStreakSql = "SELECT MAX(streaks) as best_streak FROM ( SELECT streak - skips as streaks FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ) )"
 
-      console.log(bestStreakSql)
+      // console.log(bestStreakSql)
 
       db.transaction(function (tx) {
         tx.executeSql(
@@ -1645,9 +1645,9 @@ const Main = ({navigation}) => {
 
       // const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
 
-      const currentStreakSql = "SELECT streak - skips as current_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )"
+      const currentStreakSql = "SELECT streak - skips as current_streak, end_date as latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )"
 
-      console.log(currentStreakSql)
+      // console.log(currentStreakSql)
 
       let today = new Date();
       let year = today.getFullYear();
@@ -1688,8 +1688,9 @@ const Main = ({navigation}) => {
           [],
           (sqlTxn, res) => {
             let latestDate = res.rows.item(0)["latest_date"];
-            console.log(">>>> ", res.rows.item(0)["current_streak"])
+            // console.log(">>>> ", res.rows.item(0)["current_streak"], latestDate)
             if (date != latestDate && latestDate != yesterdayDate) {
+              // console.log("++++++", date, latestDate)
               item.currentStreak = 0;
             } else {
               item.currentStreak = res.rows.item(0)["current_streak"];
@@ -1832,7 +1833,7 @@ const Main = ({navigation}) => {
     })
     
     useEffect(async () => {
-      if (habitsFetched <= habits.length) {
+      if (habitsFetched <= habits.length+1) {
         let results = await getStreaks()
         setHabits(results)
       }

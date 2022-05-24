@@ -88,13 +88,14 @@ const Main = ({navigation}) => {
   const [itemID, setitemID] = useState(0);
   const [progressDisplay, setProgressDisplay] = useState("");
   const [formOfMeasurementOut, setFormOfMeasurementOut]= useState("");
+  const [nextRecurrence, setnextRecurrence]= useState("");
   const [isSkip,setIsSkip]= useState(false);
   const [doesExist, setDoesExist] = useState(null);
   const [currentStreak, setCurrentStreak] = useState("");
   const [bestStreak, setBestStreak] = useState("");
   const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
-
   const [userName, setUserName] = useState("");
+  const [count, setCounter]= useState(0);
 
     //useEffect added
     useEffect(() => {
@@ -210,7 +211,7 @@ const Main = ({navigation}) => {
 
       db.transaction(txn => {
         txn.executeSql(
-          // `DROP TABLE habitsCalendar`,
+          //`DROP TABLE habitsCalendar`,
           `CREATE TABLE IF NOT EXISTS habitsCalendar (
             id INTEGER,
             date DATE,
@@ -663,7 +664,7 @@ const Main = ({navigation}) => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, date: item.date });
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, daysmore: 0, date: item.date });
               }
             
               setHabits(results);
@@ -952,6 +953,54 @@ const Main = ({navigation}) => {
       getHabits();
     }
 
+    function updateRecurrence(item) {
+      let today = new Date()
+      let day = today.getDate()
+      let month = today.getMonth()
+      let year = today.getFullYear()
+
+      let daysmonth=new Date(year, month, 0).getDate()
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          "SELECT MAX(date) FROM habitsCalendar WHERE id=" + item.id,
+          [],
+          (sqlTxn, res) => {
+            let cur = res.rows.item(0)["MAX(date)"]
+            let nextrec;
+            if (cur!=null)
+            {
+              nextrec= new Date(res.rows.item(0)["MAX(date)"]).getDate() + item.recurrence;
+            }
+            else
+            {
+              nextrec = 0;
+            }
+
+            if (nextrec>daysmonth){
+              nextrec=nextrec-daysmonth;
+            }
+            let daysmore= nextrec- day;
+            if (daysmore <0){
+              daysmore=daysmore+day;
+            }
+            if(item.recurrence-daysmore==0)
+            {
+              daysmore=0;
+            }
+            item.daysmore=daysmore;
+            setHabits(habits);
+            console.log(item.daysmore)
+            console.log("Days More:",daysmore)
+            console.log("Next Recurrence",nextrec)
+            console.log("Day today", day)
+          },
+          error => {
+            console.log("error on getting latest date " + error.message);
+          },
+        );
+      });
+    }
     const viewHabit = (item) => {
       setIsViewHabit(true);
 
@@ -979,18 +1028,17 @@ const Main = ({navigation}) => {
     };
 
     const renderHabit = ({ item }) => {
-      
       return (
         <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
-                bg= {item.skipped==0 ? "white": "trueGray.300"}
+                bg= {(item.skipped==0 && item.daysmore==0) ? "white": "trueGray.300"}
                 // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}
                 flexDirection="row"
                 // style={{flexWrap: "wrap", overflow: "hidden"}}
-                onPress={() => viewHabit(item)}
+                onPress={() => {viewHabit(item)}}
                 style={{
                   flexWrap: "wrap",
                   overflow: "hidden",
@@ -1024,7 +1072,7 @@ const Main = ({navigation}) => {
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
                           <HStack alignItems={"flex-start"}>
-                            {item.skipped==0 &&
+                            {(item.skipped==0 && item.daysmore==0) &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
@@ -1036,7 +1084,7 @@ const Main = ({navigation}) => {
                                 Goal: {item.goal} time/s
                               </Text>
                             }
-                            {item.skipped==1 &&
+                            {((item.skipped==1||item.daysmore>0)&& (item.progress!=item.goal)) &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
@@ -1045,7 +1093,7 @@ const Main = ({navigation}) => {
                                 {color: "#08E17C"}
                                 : {color: "#10BCE1"}
                               }>
-                                Do in {item.recurrence} day/s
+                                Do in {item.daysmore} day/s
                               </Text>
                             }
                           </HStack>
@@ -1065,7 +1113,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
-                                // disabled= {item.skipped==0 ? false:true}
+                                disabled= {(item.skipped==0 && nextRecurrence==0) ? false:true}
                                 _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
                                 rounded="full"
@@ -1085,7 +1133,7 @@ const Main = ({navigation}) => {
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
-                                // disabled= {item.skipped==0 ? false:true}
+                                disabled= {(item.skipped==0 && nextRecurrence<=0) ? false:true}
                                 _pressed={{bgColor:'danger.500'}}
                                 
                                 rounded="full"
@@ -1159,26 +1207,45 @@ const Main = ({navigation}) => {
       );
     };
     
+    const getStreaks = async () => {
+      // console.log(results)
+
+      let results = habits
+
+      for (let i = 0; i < results.length; i++) {
+        updateRecurrence(results[i]);
+      }
+      
+      return results
+    }
+
     useEffect(() => {
       (async function startHome () {
-        await createTables();
-        await getHabits();
-        await checkIfReset();
-        await getName();
+        createTables();
+        checkIfReset();
+        getName();
+        setCounter(0);
+        getHabits();
       })();
     
       return () => {
-        // this now gets called when the component unmounts
       };
     }, []);
-  
-    // useEffect(async () => {
-    //   await createTables();
-    //   await getHabits();
-    //   await checkIfReset();
-    //   await getName();
-    // }, []);
-  
+
+    useEffect(async () => {
+      if (habits.length == 0) {
+        getHabits();
+      }
+    })
+    
+    useEffect(async () => {
+      if (count < habits.length+1) {
+        setCounter(count+1);
+        let results = await getStreaks()
+        setHabits(results);
+      }
+    }, [count])
+
     return (
       <NativeBaseProvider>
         <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
@@ -1600,7 +1667,6 @@ const Main = ({navigation}) => {
               }
 
               setHabits(results);    
-              setHabitsFetched(habitsFetched + 1);       
             } else {
               setHabits([]);
               console.log("no more habits");

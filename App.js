@@ -5,7 +5,7 @@ import * as SQLite from "expo-sqlite";
 import { NativeBaseProvider, HStack, VStack, Center, Box, Button, Pressable, Text, Modal, FormControl, Input, Radio, UseTheme, Spacer, Divider, ScrollView, Icon, IconButton, AlertDialog, Slide, Flex } from 'native-base';
 import { MaterialCommunityIcons, Entypo, Ionicons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
-import {LogBox} from 'react-native';
+import {LogBox, YellowBox} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import { useNavigation } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
@@ -14,6 +14,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { get } from "react-native/Libraries/Utilities/PixelRatio";
 
 LogBox.ignoreLogs(['NativeBase:']);
+// YellowBox.ignoreWarnings([
+// 	'VirtualizedLists should never be nested', // TODO: Remove when fixed
+// ])
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -25,19 +28,33 @@ function Bottom () {
   var height = Dimensions.get('window').height;
   var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [btnSelected, setBtnSelected] = useState(null);
   const config = {
     dependencies: {
       "linear-gradient": LinearGradient
     }
   };
+
+  useEffect(async () => {
+    if (selected == 0) {
+      console.log("MAIN", selected)
+      avigation.navigate("Main")
+      setSelected(0)
+    } else {
+      console.log("STAT", selected)
+      navigation.navigate("Statistics")
+      setSelected(1)
+    }
+  }, [selected])
+
   return <NativeBaseProvider config={config}>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" bg={{linearGradient: {colors: ["#25BAE5", "#69B2F4"], start: [0, 0], end: [0, 1]}}} m="0">
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-            <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
+            <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => setSelected(0)}>
                 <Icon as={MaterialCommunityIcons} name="home-variant" size="lg" color="white"/>
             </Pressable>
-            <Pressable mt="1" alignItems="center" opacity={selected === 1 ? 1 : 0.5} onPress={() => {navigation.navigate("Statistics"); setSelected(1)}}>
+            <Pressable mt="1" alignItems="center" opacity={selected === 1 ? 1 : 0.5} onPress={() => setSelected(1)}>
                 <Icon as={Entypo} name="bar-graph" size="lg" color="white"/>
             </Pressable>
         </HStack>
@@ -1805,14 +1822,37 @@ const Main = ({navigation}) => {
     };
 
     const getStreaks = async () => {
-      // console.log(results)
-
+      let rows;
       let results = habits
+      db.transaction(txn => {
+        txn.executeSql(
+          `SELECT COUNT(*) FROM habitsCalendar`,
+          [],
+          (sqlTxn, res) => {
+            rows = res.rows.item(0)["COUNT(*)"]
+            
+            if (rows > 0) {
+              console.log("rows > 0")
+              for (let i = 0; i < results.length; i++) {
+                getBestStreak(results[i]);
+                getCurrentStreak(results[i]);  
+              }
+            } else {
+              console.log("rows = 0")
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
 
-      for (let i = 0; i < results.length; i++) {
-        getBestStreak(results[i]);
-        getCurrentStreak(results[i]);  
-      }
+      
+
+      // for (let i = 0; i < results.length; i++) {
+      //   getBestStreak(results[i]);
+      //   getCurrentStreak(results[i]);  
+      // }
       
       return results
     }

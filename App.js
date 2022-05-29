@@ -12,6 +12,7 @@ import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import OutsideView from 'react-native-detect-press-outside';
 import { LinearGradient } from 'expo-linear-gradient';
 import { get } from "react-native/Libraries/Utilities/PixelRatio";
+import {Calendar} from 'react-native-calendars';
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -25,7 +26,6 @@ function Bottom () {
   var height = Dimensions.get('window').height;
   var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
-  const [selected, setSelected] = useState(0);
   const config = {
     dependencies: {
       "linear-gradient": LinearGradient
@@ -34,12 +34,18 @@ function Bottom () {
   return <NativeBaseProvider config={config}>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" bg={{linearGradient: {colors: ["#25BAE5", "#69B2F4"], start: [0, 0], end: [0, 1]}}} m="0">
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-            <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
-                <Icon as={MaterialCommunityIcons} name="home-variant" size="lg" color="white"/>
-            </Pressable>
-            <Pressable mt="1" alignItems="center" opacity={selected === 1 ? 1 : 0.5} onPress={() => {navigation.navigate("Statistics"); setSelected(1)}}>
-                <Icon as={Entypo} name="bar-graph" size="lg" color="white"/>
-            </Pressable>
+          <IconButton
+                variant="link" 
+                onPress={() => {navigation.navigate("Main")}}
+                icon={<Icon as ={MaterialCommunityIcons} name="home-variant" size="lg" color="#86E9FA"/>} _pressed={{
+                  _icon: {color: "white"}
+                  }}/>
+                <IconButton
+                variant="link"
+                onPress={() => {navigation.navigate("Statistics")}}
+                icon={<Icon as={Entypo} name="bar-graph" size="lg" color="#86E9FA"/>} _pressed={{
+                  _icon: {color: "white"}
+                  }}/>
         </HStack>
       </Box> 
       </NativeBaseProvider>;
@@ -1492,7 +1498,7 @@ const Main = ({navigation}) => {
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
     const [habitsFetched, setHabitsFetched] = useState(0);
-
+    const [streakdates, setStreakDates] = useState({}); //for streak dates
     const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
     useEffect(() => {
@@ -1765,7 +1771,16 @@ const Main = ({navigation}) => {
 
     const viewHabitStatistics = (item) => {
       setIsViewHabitStatistics(true);
-
+      /*setStreakDates({
+        '2022-05-06':  {disabled: true, startingDay: true, color: '#18BBE2', textColor: "white", endingDay: false},
+        '2022-05-07':  {disabled: true, startingDay: false, color: '#18BBE2', textColor: "white", endingDay: true},
+        '2022-05-04': {disabled: true, startingDay: true, color: '#18BBE2', textColor: "white", endingDay: true},
+        '2022-05-09':  {disabled: true, startingDay: true, color: '#18BBE2', textColor: "white", endingDay: false},
+        '2022-05-10':  {disabled: true, startingDay: false, color: '#18BBE2', textColor: "white", endingDay: false},
+        '2022-05-11':  {disabled: true, startingDay: false, color: '#18BBE2', textColor: "white", endingDay: false},
+        '2022-05-12':  {disabled: true, startingDay: false, color: '#18BBE2', textColor: "white", endingDay: false},
+        '2022-05-13':  {disabled: true, startingDay: false, color: '#18BBE2', textColor: "white", endingDay: true},
+      });*/
       console.log("!!!!!!!! viewed " + item.habitName + " " + item.bestStreak + " " + item.currentStreak);
       setitemID(item.id);
       setHabitNameDisplay(item.habitName);
@@ -1773,6 +1788,7 @@ const Main = ({navigation}) => {
       setGoalDisplay(item.goal);
       setCurrentStreakDisplay(item.currentStreak);
       setBestStreakDisplay(item.bestStreak);
+      getStreakDates(item);
     }
 
     const getName = () => {
@@ -1794,6 +1810,196 @@ const Main = ({navigation}) => {
             } else {
               setuserNameDisplay("");
               console.log("no name listed");
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
+    };
+
+    function start_streak (yesterday, today) {
+      let year_yesterday = parseInt(yesterday[0])
+      let month_yesterday = parseInt(yesterday[1])
+      let day_yesterday = parseInt(yesterday[2])
+      let year_today = parseInt(today[0])
+      let month_today = parseInt(today[1])
+      let day_today = parseInt(today[2]);
+      let start = 0;
+      if (year_yesterday + 1 == year_today){ //case: check if today is january 1 and yesterday is not dec 31
+        if (month_today == 1 && month_yesterday == 12){
+          if (day_today == 1 && day_yesterday != 31){
+            start = 1;
+          }
+        }
+      }
+      else {
+        if (year_today == year_yesterday){ //case: same year same month but not consecutive days
+          if (month_today == month_yesterday){
+            if (day_today != day_yesterday + 1){
+              start = 1;
+            }
+          }
+          else if (month_yesterday + 1 == month_today){ //case: same year different month but not consecutive days
+            const months_31_days = [1, 3, 5, 7, 8, 10, 12]
+            const months_30_days = [4, 6, 9, 11]
+            if (day_today == 1 ){
+              if (months_31_days.includes(month_yesterday) && day_yesterday != 31){
+                start = 1;
+              }
+              else if (months_30_days.includes(month_yesterday) && day_yesterday != 30){
+                start = 1;
+              }
+              else if (month_yesterday == 2){ //case: month yesterday is february but not consecutive days
+                if (year_today % 4 == 0 && day_yesterday != 29){
+                  start = 1;
+                }
+                else if (year_today % 4 != 0 && day_yesterday != 28){
+                  start = 1;
+                }
+              }
+            } 
+          }
+        }
+      }
+
+      return start
+    }
+
+    function end_streak (today, tomorrow) {
+      let year_tomorrow = parseInt(tomorrow[0]);
+      let month_tomorrow = parseInt(tomorrow[1]);
+      let day_tomorrow = parseInt(tomorrow[2]);
+      let year_today = parseInt(today[0]);
+      let month_today = parseInt(today[1]);
+      let day_today = parseInt(today[2]);
+      let end = 0;
+      if (year_today + 1 == year_tomorrow){ //case: check if tomorrow is january 1 and tomorrow is not dec 31
+        if (month_tomorrow == 1 && month_today == 12){
+          if (day_tomorrow == 1 && day_today != 31){
+            end = 1;
+          }
+        }
+      }
+      else {
+        if (year_tomorrow == year_today){ //case: same year same month but not consecutive days
+          if (month_tomorrow == month_today){
+            if (day_tomorrow != day_today + 1){
+              end = 1;
+            }
+          }
+          else if (month_today + 1 == month_tomorrow){ //case: same year different month but not consecutive days
+            const months_31_days = [1, 3, 5, 7, 8, 10, 12]
+            const months_30_days = [4, 6, 9, 11]
+            if (day_tomorrow == 1 ){
+              if (months_31_days.includes(month_today) && day_today != 31){
+                end = 1;
+              }
+              else if (months_30_days.includes(month_today) && day_today != 30){
+                end = 1;
+              }
+              else if (month_today == 2){ //case: month today is february but not consecutive days
+                if (year_tomorrow % 4 == 0 && day_today != 29){
+                  end = 1;
+                }
+                else if (year_tomorrow % 4 != 0 && day_today != 28){
+                  end = 1;
+                }
+              }
+            } 
+          }
+        }
+      }
+
+      return end
+    }
+
+    const getStreakDates = (item) => {
+      db.transaction(txn => {
+        txn.executeSql(
+          'SELECT * FROM habitsCalendar WHERE id =' + item.id,
+          [],
+          (sqlTxn, res) => {
+            console.log("dates retrieved successfully");
+            let len = res.rows.length;
+            let streakDict = {};
+            if (len > 0){
+              if (item.recurrence == 1) {
+                let start = 1;
+                let end = 1;
+                for (let i = 0; i < len; i++) {
+                  const year_month_day_today = res.rows.item(i)["date"].split('-');
+                  if (len == 1){
+                    start = 1;
+                    end = 1;
+                  }
+
+                  else if (i == len - 1){
+                    const year_month_day_yesterday = res.rows.item(i-1)["date"].split('-');
+                    start = start_streak(year_month_day_yesterday, year_month_day_today)
+                    end = 1;
+                  }
+                  else if (i == 0){
+                    const year_month_day_tomorrow = res.rows.item(i+1)["date"].split('-');
+                    start = 1;
+                    end = end_streak(year_month_day_today, year_month_day_tomorrow);
+                  }
+                  else {
+                    const year_month_day_yesterday = res.rows.item(i-1)["date"].split('-');
+                    const year_month_day_tomorrow = res.rows.item(i+1)["date"].split('-');
+                    start = start_streak(year_month_day_yesterday, year_month_day_today)
+                    end = end_streak(year_month_day_today, year_month_day_tomorrow);
+                  }
+                  
+                  console.log("# " + res.rows.item(i)["id"] + " " + res.rows.item(i)["date"] + " " + res.rows.item(i)["skipped"])
+                  //determine if current date is start or end or neither
+                  if (res.rows.item(i)["skipped"] == 0){ //blue mark if not skipped
+                    if (start == 1 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: true}
+                    }
+                    else if (start == 1 && end == 0){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: false}
+                    }
+                    else if (start == 0 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#22d3ee', endingDay: true}
+                    }
+                    else {
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#22d3ee', endingDay: false}
+                    }
+                  }
+                  else { //gray mark if skipped #9ca3af
+                    if (start == 1 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: true}
+                    }
+                    else if (start == 1 && end == 0){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: false}
+                    }
+                    else if (start == 0 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#9ca3af', endingDay: true}
+                    }
+                    else {
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#9ca3af', endingDay: false}
+                    }
+                  }
+                }
+              }
+              else { //recurrence > 1
+                for (let i = 0; i < len; i++) {
+                  console.log("# " + res.rows.item(i)["id"] + " " + res.rows.item(i)["date"] + " " + res.rows.item(i)["skipped"])
+                  if (res.rows.item(i)["skipped"] == 0){
+                    streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: true}
+                  }
+                  else {
+                    streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: true}
+                  }
+                }
+              }
+            console.log(streakDict)
+            setStreakDates(streakDict)
+            }
+            else {
+              console.log("no streaks listed")
             }
           },
           error => {
@@ -1910,16 +2116,19 @@ const Main = ({navigation}) => {
                       </VStack>
                     </Flex>
                   </Box>
-                  <Box width="350" height="250" bg={{
+                  {/*<Box width="350" height="250" bg={{
                     linearGradient: {
                       colors: ["#11BCE1", "#66B1F2"],
                       start: [0, 0],
                       end: [0, 1]
                     }
                   }} p={3} rounded="35" mt={5} alignSelf={"center"} shadow={9}>
-                  <Text fontSize="sm" fontWeight="semibold" color="white" alignSelf={"center"}>
-                    April 2022
-                  </Text>
+                  </Box>*/}
+                  <Box width="350" height="250" alignSelf="center" >
+                    <Calendar
+                      markingType={'period'}
+                      markedDates={streakdates}
+                    />
                   </Box>
                 </VStack>
               </Box>

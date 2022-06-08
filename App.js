@@ -491,6 +491,10 @@ const Main = ({navigation}) => {
       });
 
       setShowModal(false);
+      setCounter(0);
+      let results = getStreaks()
+      setHabits(results);
+      getStreaks();
     };
   
     const editHabit = () => {
@@ -589,6 +593,10 @@ const Main = ({navigation}) => {
         });
   
         setShowModal(false);
+        setCounter(0);
+        let results = getStreaks()
+        setHabits(results);
+        getStreaks();
       };
     
       const loadEdit = (editID) => {
@@ -685,6 +693,7 @@ const Main = ({navigation}) => {
             
               setHabits(results);
               setHabitsFetched(habitsFetched + 1)
+              setCounter(count + 1);
               console.log("habit results" + results);
             } else {
               setHabits([]);
@@ -1254,7 +1263,7 @@ const Main = ({navigation}) => {
         checkIfReset();
         getName();
         setCounter(0);
-        getHabits();
+        // getHabits();
       })();
     
       return () => {
@@ -1270,9 +1279,12 @@ const Main = ({navigation}) => {
 
     useEffect(async () => {
       if (count < habits.length+1) {
-        setCounter(count+1);
-        let results = await getStreaks()
-        setHabits(results);
+        for (let i = 0; i < habits.length; i++) {
+          console.log(">>>", i)
+          console.log(count)
+          let results = await getStreaks()
+          setHabits(results);
+        }
       }
     }, [count])
 

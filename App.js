@@ -12,6 +12,7 @@ import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import OutsideView from 'react-native-detect-press-outside';
 import { LinearGradient } from 'expo-linear-gradient';
 import { get } from "react-native/Libraries/Utilities/PixelRatio";
+import {Calendar} from 'react-native-calendars';
 
 LogBox.ignoreLogs(['NativeBase:']);
 
@@ -34,12 +35,24 @@ function Bottom () {
   return <NativeBaseProvider config={config}>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" bg={{linearGradient: {colors: ["#25BAE5", "#69B2F4"], start: [0, 0], end: [0, 1]}}} m="0">
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-            <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
+            {/* <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
                 <Icon as={MaterialCommunityIcons} name="home-variant" size="lg" color="white"/>
             </Pressable>
             <Pressable mt="1" alignItems="center" opacity={selected === 1 ? 1 : 0.5} onPress={() => {navigation.navigate("Statistics"); setSelected(1)}}>
                 <Icon as={Entypo} name="bar-graph" size="lg" color="white"/>
-            </Pressable>
+            </Pressable> */}
+            <IconButton
+                variant="link" 
+                onPress={() => {navigation.navigate("Main")}}
+                icon={<Icon as ={MaterialCommunityIcons} name="home-variant" size="lg" color="#86E9FA"/>} _pressed={{
+                  _icon: {color: "white"}
+                  }}/>
+            <IconButton
+                variant="link"
+                onPress={() => {navigation.navigate("Statistics")}}
+                icon={<Icon as={Entypo} name="bar-graph" size="lg" color="#86E9FA"/>} _pressed={{
+                  _icon: {color: "white"}
+                  }}/>
         </HStack>
       </Box> 
       </NativeBaseProvider>;
@@ -88,13 +101,16 @@ const Main = ({navigation}) => {
   const [itemID, setitemID] = useState(0);
   const [progressDisplay, setProgressDisplay] = useState("");
   const [formOfMeasurementOut, setFormOfMeasurementOut]= useState("");
+  const [nextRecurrence, setnextRecurrence]= useState("");
   const [isSkip,setIsSkip]= useState(false);
   const [doesExist, setDoesExist] = useState(null);
   const [currentStreak, setCurrentStreak] = useState("");
   const [bestStreak, setBestStreak] = useState("");
   const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
-
   const [userName, setUserName] = useState("");
+  const [count, setCounter]= useState(0);
+  const [daysMore, setDaysMore] = useState("")
+  const [habitsFetched, setHabitsFetched] = useState(0)
 
     //useEffect added
     useEffect(() => {
@@ -663,10 +679,12 @@ const Main = ({navigation}) => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, date: item.date });
+                // results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, date: item.date });
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, daysmore: 0, date: item.date });
               }
             
               setHabits(results);
+              setHabitsFetched(habitsFetched + 1)
               console.log("habit results" + results);
             } else {
               setHabits([]);
@@ -952,6 +970,55 @@ const Main = ({navigation}) => {
       getHabits();
     }
 
+    function updateRecurrence(item) {
+      let today = new Date()
+      let day = today.getDate()
+      let month = today.getMonth()
+      let year = today.getFullYear()
+
+      let daysmonth=new Date(year, month, 0).getDate()
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          "SELECT MAX(date) FROM habitsCalendar WHERE id=" + item.id,
+          [],
+          (sqlTxn, res) => {
+            let cur = res.rows.item(0)["MAX(date)"]
+            let nextrec;
+            if (cur!=null)
+            {
+              nextrec= new Date(res.rows.item(0)["MAX(date)"]).getDate() + item.recurrence;
+            }
+            else
+            {
+              nextrec = 0;
+            }
+
+            if (nextrec>daysmonth){
+              nextrec=nextrec-daysmonth;
+            }
+            let daysmore= nextrec- day;
+            if (daysmore <0){
+              daysmore=daysmore+day;
+            }
+            if(item.recurrence-daysmore==0)
+            {
+              daysmore=0;
+            }
+            item.daysmore=daysmore;
+            setHabits(habits);
+            console.log(item.daysmore)
+            console.log("Days More:",daysmore)
+            console.log("Next Recurrence",nextrec)
+            console.log("Day today", day)
+          },
+          error => {
+            console.log("error on getting latest date " + error.message);
+          },
+        );
+      });
+    }
+
     const viewHabit = (item) => {
       setIsViewHabit(true);
 
@@ -964,6 +1031,7 @@ const Main = ({navigation}) => {
       setProgressDisplay(item.progress);
       setFormOfMeasurementOut(item.formOfMeasurement);
       setIsSkip(item.skipped);
+      setDaysMore(item.daysmore)
       if (item.formOfMeasurement == 1) {
         setFormOfMeasurementDisplay("Increment");
       } else {
@@ -984,13 +1052,15 @@ const Main = ({navigation}) => {
         <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
-                bg= {item.skipped==0 ? "white": "trueGray.300"}
+                // bg= {item.skipped==0 ? "white": "trueGray.300"}
+                bg= {(item.skipped==0 && item.daysmore==0) ? "white": "trueGray.300"}
                 // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}
                 flexDirection="row"
                 // style={{flexWrap: "wrap", overflow: "hidden"}}
-                onPress={() => viewHabit(item)}
+                // onPress={() => viewHabit(item)}
+                onPress={() => {viewHabit(item)}}
                 style={{
                   flexWrap: "wrap",
                   overflow: "hidden",
@@ -1024,7 +1094,8 @@ const Main = ({navigation}) => {
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
                           <HStack alignItems={"flex-start"}>
-                            {item.skipped==0 &&
+                            {/* {item.skipped==0 && */}
+                            {(item.skipped==0 && item.daysmore==0) &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
@@ -1036,7 +1107,8 @@ const Main = ({navigation}) => {
                                 Goal: {item.goal} time/s
                               </Text>
                             }
-                            {item.skipped==1 &&
+                            {/* {item.skipped==1 && */}
+                            {((item.skipped==1||item.daysmore>0)&& (item.progress!=item.goal)) &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
@@ -1045,7 +1117,8 @@ const Main = ({navigation}) => {
                                 {color: "#08E17C"}
                                 : {color: "#10BCE1"}
                               }>
-                                Do in {item.recurrence} day/s
+                                {/* Do in {item.recurrence} day/s */}
+                                Do in {item.daysmore} day/s
                               </Text>
                             }
                           </HStack>
@@ -1061,15 +1134,17 @@ const Main = ({navigation}) => {
                                 alignItems="center"
                                 variant="ghost"
                                 style={
-                                  item.progress === item.goal ?
+                                  item.progress === item.goal || (item.skipped==1 || item.daysmore>0) ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
                                 // disabled= {item.skipped==0 ? false:true}
+                                disabled= {(item.skipped==1 || item.daysmore>0) ? true:false}
                                 _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
                                 rounded="full"
-                                onPress={() => updateHabit(item, "inc")}
+                                // onPress={() => updateHabit(item, "inc")}
+                                onPress={() => (item.skipped==1 || item.daysmore>0) ? console.log("skipped: + disabled") : updateHabit(item, "inc")}
                                 icon={<Icon as={Entypo} name="plus" />} _icon={{
                                   color: "white",
                                   size: "20px",
@@ -1081,15 +1156,17 @@ const Main = ({navigation}) => {
                                 alignItems="center"
                                 variant="solid"
                                 style={
-                                  item.progress === 0 ?
+                                  item.progress === 0 || (item.skipped==1 || item.daysmore>0) ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
                                 // disabled= {item.skipped==0 ? false:true}
+                                disabled= {(item.skipped==1 || item.daysmore>0) ? true:false}
                                 _pressed={{bgColor:'danger.500'}}
                                 
                                 rounded="full"
-                                onPress={() => updateHabit(item, "dec")}
+                                onPress={() => (item.skipped==1 || item.daysmore>0) ? console.log("skipped: - disabled") : updateHabit(item, "dec")}
+                                // onPress={() => updateHabit(item, "dec")}
                                 icon={<Icon as={Entypo} name="minus" />} _icon={{
                                   color: "white",
                                   size: "20px",
@@ -1159,26 +1236,75 @@ const Main = ({navigation}) => {
       );
     };
     
+    const getStreaks = async () => {
+      // console.log(results)
+
+      let results = habits
+
+      for (let i = 0; i < results.length; i++) {
+        updateRecurrence(results[i]);
+      }
+
+      return results
+    }
+
     useEffect(() => {
       (async function startHome () {
-        await createTables();
-        await getHabits();
-        await checkIfReset();
-        await getName();
+        createTables();
+        checkIfReset();
+        getName();
+        setCounter(0);
+        getHabits();
       })();
     
       return () => {
         // this now gets called when the component unmounts
       };
     }, []);
-  
+
+    useEffect(async () => {
+      if (habits.length == 0) {
+        getHabits();
+      }
+    })
+
+    useEffect(async () => {
+      if (count < habits.length+1) {
+        setCounter(count+1);
+        let results = await getStreaks()
+        setHabits(results);
+      }
+    }, [count])
+
     // useEffect(async () => {
-    //   await createTables();
-    //   await getHabits();
-    //   await checkIfReset();
-    //   await getName();
-    // }, []);
-  
+    //   console.log("START", habitsFetched)
+    //   // setHabitsFetched(habitsFetched + 1)
+    //   // if (habits.length == 0) {
+    //   console.log("HABITS LENGTH = 0", habitsFetched)
+    //   if (habits.length == 0) {
+    //     getHabits();
+    //   }
+    // })
+
+    // useEffect(async () => {
+    //   console.log("Here", habitsFetched)
+    //   if (habitsFetched < habits.length*2 ) {
+    //     // setCounter(count+1);
+    //     let results = await getRecurrence()
+    //     setHabits(results);
+    //     console.log("FETCH")
+    //   }
+    // }, [habitsFetched])
+
+    // useEffect(async () => {
+    //   if (count < habits.length+1) {
+    //     setCounter(count+1);
+    //     let results = await getStreaks()
+    //     setHabits(results);
+    //     console.log("hiii")
+    //   }
+    // }, [count])
+
     return (
       <NativeBaseProvider>
         <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
@@ -1435,12 +1561,24 @@ const Main = ({navigation}) => {
                   </VStack>
                 </HStack>
                 <HStack mt={8} space={10} justifyContent="space-evenly">
+                  {(isSkip==1 || daysMore>0) &&
                   <Button
                   variant="subtle"
+                  colorScheme="primary"
+                  rounded="lg"
+                  onPress={() => {setSkipOpen(true);}} isDisabled>
+                    Skip today
+                  </Button>
+                  }
+                  {!(isSkip==1 || daysMore>0) &&
+                  <Button
+                  variant="subtle"
+                  colorScheme="primary"
                   rounded="lg"
                   onPress={() => {setSkipOpen(true);}}>
                     Skip today
                   </Button>
+                  }
                   <Button
                   variant="outline"
                   rounded="lg"
@@ -1492,7 +1630,7 @@ const Main = ({navigation}) => {
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
     const [habitsFetched, setHabitsFetched] = useState(0);
-
+    const [streakdates, setStreakDates] = useState({}); //for streak dates
     const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
     useEffect(() => {
@@ -1628,7 +1766,11 @@ const Main = ({navigation}) => {
           bestStreakSql,
           [],
           (sqlTxn, res) => {
-            item.bestStreak = res.rows.item(0)["best_streak"];
+            
+            console.log("BS", item.id, "rows:", res.rows.length)
+            if (res.rows.item(0)["best_streak"] != null) {
+              item.bestStreak = res.rows.item(0)["best_streak"];
+            }
             setHabits(habits)
             setHabitsFetched(habitsFetched + 1);
           },
@@ -1687,13 +1829,17 @@ const Main = ({navigation}) => {
           currentStreakSql,
           [],
           (sqlTxn, res) => {
-            let latestDate = res.rows.item(0)["latest_date"];
+            // console.log(item.id, res.rows)
+            console.log("CS", item.id, "rows:", res.rows.length)
+            if (res.rows.length > 0) {
+              let latestDate = res.rows.item(0)["latest_date"];
             // console.log(">>>> ", res.rows.item(0)["current_streak"], latestDate)
-            if (date != latestDate && latestDate != yesterdayDate) {
-              // console.log("++++++", date, latestDate)
-              item.currentStreak = 0;
-            } else {
-              item.currentStreak = res.rows.item(0)["current_streak"];
+              if (date != latestDate && latestDate != yesterdayDate) {
+                // console.log("++++++", date, latestDate)
+                item.currentStreak = 0;
+              } else {
+                item.currentStreak = res.rows.item(0)["current_streak"];
+              }
             }
             setHabits(habits)
             setHabitsFetched(habitsFetched + 1);
@@ -1774,6 +1920,7 @@ const Main = ({navigation}) => {
       setGoalDisplay(item.goal);
       setCurrentStreakDisplay(item.currentStreak);
       setBestStreakDisplay(item.bestStreak);
+      getStreakDates(item);
     }
 
     const getName = () => {
@@ -1804,18 +1951,240 @@ const Main = ({navigation}) => {
       });
     };
 
+    function start_streak (yesterday, today) {
+      let year_yesterday = parseInt(yesterday[0])
+      let month_yesterday = parseInt(yesterday[1])
+      let day_yesterday = parseInt(yesterday[2])
+      let year_today = parseInt(today[0])
+      let month_today = parseInt(today[1])
+      let day_today = parseInt(today[2]);
+      let start = 0;
+      if (year_yesterday + 1 == year_today){ //case: check if today is january 1 and yesterday is not dec 31
+        if (month_today == 1 && month_yesterday == 12){
+          if (day_today == 1 && day_yesterday != 31){
+            start = 1;
+          }
+        }
+      }
+      else {
+        if (year_today == year_yesterday){ //case: same year same month but not consecutive days
+          if (month_today == month_yesterday){
+            if (day_today != day_yesterday + 1){
+              start = 1;
+            }
+          }
+          else if (month_yesterday + 1 == month_today){ //case: same year different month but not consecutive days
+            const months_31_days = [1, 3, 5, 7, 8, 10, 12]
+            const months_30_days = [4, 6, 9, 11]
+            if (day_today == 1 ){
+              if (months_31_days.includes(month_yesterday) && day_yesterday != 31){
+                start = 1;
+              }
+              else if (months_30_days.includes(month_yesterday) && day_yesterday != 30){
+                start = 1;
+              }
+              else if (month_yesterday == 2){ //case: month yesterday is february but not consecutive days
+                if (year_today % 4 == 0 && day_yesterday != 29){
+                  start = 1;
+                }
+                else if (year_today % 4 != 0 && day_yesterday != 28){
+                  start = 1;
+                }
+              }
+            } 
+          }
+        }
+      }
+
+      return start
+    }
+
+    function end_streak (today, tomorrow) {
+      let year_tomorrow = parseInt(tomorrow[0]);
+      let month_tomorrow = parseInt(tomorrow[1]);
+      let day_tomorrow = parseInt(tomorrow[2]);
+      let year_today = parseInt(today[0]);
+      let month_today = parseInt(today[1]);
+      let day_today = parseInt(today[2]);
+      let end = 0;
+      if (year_today + 1 == year_tomorrow){ //case: check if tomorrow is january 1 and tomorrow is not dec 31
+        if (month_tomorrow == 1 && month_today == 12){
+          if (day_tomorrow == 1 && day_today != 31){
+            end = 1;
+          }
+        }
+      }
+      else {
+        if (year_tomorrow == year_today){ //case: same year same month but not consecutive days
+          if (month_tomorrow == month_today){
+            if (day_tomorrow != day_today + 1){
+              end = 1;
+            }
+          }
+          else if (month_today + 1 == month_tomorrow){ //case: same year different month but not consecutive days
+            const months_31_days = [1, 3, 5, 7, 8, 10, 12]
+            const months_30_days = [4, 6, 9, 11]
+            if (day_tomorrow == 1 ){
+              if (months_31_days.includes(month_today) && day_today != 31){
+                end = 1;
+              }
+              else if (months_30_days.includes(month_today) && day_today != 30){
+                end = 1;
+              }
+              else if (month_today == 2){ //case: month today is february but not consecutive days
+                if (year_tomorrow % 4 == 0 && day_today != 29){
+                  end = 1;
+                }
+                else if (year_tomorrow % 4 != 0 && day_today != 28){
+                  end = 1;
+                }
+              }
+            } 
+          }
+        }
+      }
+
+      return end
+    }
+
+    const getStreakDates = (item) => {
+      db.transaction(txn => {
+        txn.executeSql(
+          'SELECT * FROM habitsCalendar WHERE id =' + item.id,
+          [],
+          (sqlTxn, res) => {
+            console.log("dates retrieved successfully");
+            let len = res.rows.length;
+            let streakDict = {};
+            if (len > 0){
+              if (item.recurrence == 1) {
+                let start = 1;
+                let end = 1;
+                for (let i = 0; i < len; i++) {
+                  const year_month_day_today = res.rows.item(i)["date"].split('-');
+                  if (len == 1){
+                    start = 1;
+                    end = 1;
+                  }
+
+                  else if (i == len - 1){
+                    const year_month_day_yesterday = res.rows.item(i-1)["date"].split('-');
+                    start = start_streak(year_month_day_yesterday, year_month_day_today)
+                    end = 1;
+                  }
+                  else if (i == 0){
+                    const year_month_day_tomorrow = res.rows.item(i+1)["date"].split('-');
+                    start = 1;
+                    end = end_streak(year_month_day_today, year_month_day_tomorrow);
+                  }
+                  else {
+                    const year_month_day_yesterday = res.rows.item(i-1)["date"].split('-');
+                    const year_month_day_tomorrow = res.rows.item(i+1)["date"].split('-');
+                    start = start_streak(year_month_day_yesterday, year_month_day_today)
+                    end = end_streak(year_month_day_today, year_month_day_tomorrow);
+                  }
+
+                  console.log("# " + res.rows.item(i)["id"] + " " + res.rows.item(i)["date"] + " " + res.rows.item(i)["skipped"])
+                  //determine if current date is start or end or neither
+                  if (res.rows.item(i)["skipped"] == 0){ //blue mark if not skipped
+                    if (start == 1 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: true}
+                    }
+                    else if (start == 1 && end == 0){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: false}
+                    }
+                    else if (start == 0 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#22d3ee', endingDay: true}
+                    }
+                    else {
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#22d3ee', endingDay: false}
+                    }
+                  }
+                  else { //gray mark if skipped #9ca3af
+                    if (start == 1 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: true}
+                    }
+                    else if (start == 1 && end == 0){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: false}
+                    }
+                    else if (start == 0 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#9ca3af', endingDay: true}
+                    }
+                    else {
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#9ca3af', endingDay: false}
+                    }
+                  }
+                }
+              }
+              else { //recurrence > 1
+                for (let i = 0; i < len; i++) {
+                  console.log("# " + res.rows.item(i)["id"] + " " + res.rows.item(i)["date"] + " " + res.rows.item(i)["skipped"])
+                  if (res.rows.item(i)["skipped"] == 0){
+                    streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: true}
+                  }
+                  else {
+                    streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: true}
+                  }
+                }
+              }
+            console.log(streakDict)
+            setStreakDates(streakDict)
+            }
+            else {
+              console.log("no streaks listed")
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
+    };
+
+    // const getStreaks = async () => {
+    //   // console.log(results)
+
+    //   let results = habits
+
+    //   for (let i = 0; i < results.length; i++) {
+    //     getBestStreak(results[i]);
+    //     getCurrentStreak(results[i]);  
+    //   }
+      
+    //   return results
+    // }
+
     const getStreaks = async () => {
       // console.log(results)
 
+      let rows;
       let results = habits
+      db.transaction(txn => {
+        txn.executeSql(
+          `SELECT COUNT(*) FROM habitsCalendar`,
+          [],
+          (sqlTxn, res) => {
+            rows = res.rows.item(0)["COUNT(*)"]
 
-      for (let i = 0; i < results.length; i++) {
-        getBestStreak(results[i]);
-        getCurrentStreak(results[i]);  
-      }
-      
-      return results
-    }
+            if (rows > 0) {
+              console.log("rows > 0")
+              for (let i = 0; i < results.length; i++) {
+                getBestStreak(results[i]);
+                getCurrentStreak(results[i]);  
+              }
+            } else {
+              console.log("rows = 0")
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
+
+      return results;
+  }
+    
 
     useEffect(() => {
       (async function startStatistics () {
@@ -1911,7 +2280,7 @@ const Main = ({navigation}) => {
                       </VStack>
                     </Flex>
                   </Box>
-                  <Box width="350" height="250" bg={{
+                  {/* <Box width="350" height="250" bg={{
                     linearGradient: {
                       colors: ["#11BCE1", "#66B1F2"],
                       start: [0, 0],
@@ -1921,6 +2290,12 @@ const Main = ({navigation}) => {
                   <Text fontSize="sm" fontWeight="semibold" color="white" alignSelf={"center"}>
                     April 2022
                   </Text>
+                  </Box> */}
+                  <Box width="350" height="250" alignSelf="center" >
+                    <Calendar
+                      markingType={'period'}
+                      markedDates={streakdates}
+                    />
                   </Box>
                 </VStack>
               </Box>

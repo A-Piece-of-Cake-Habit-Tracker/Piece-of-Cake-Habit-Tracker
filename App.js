@@ -1014,11 +1014,24 @@ const Main = ({navigation}) => {
             if (daysmore <0){
               daysmore=daysmore+day;
             }
+            
             if(item.recurrence-daysmore==0)
             {
               daysmore=0;
             }
-            item.daysmore=daysmore;
+            if (daysmore==0)
+            {
+              item.skipped=0;
+            }
+
+            if (item.skipped==1 && item.daysmore==0)
+            {
+              item.daysmore=item.recurrence;
+            }
+            else
+            {
+              item.daysmore=daysmore;
+            }  
             setHabits(habits);
             console.log(item.daysmore)
             console.log("Days More:",daysmore)

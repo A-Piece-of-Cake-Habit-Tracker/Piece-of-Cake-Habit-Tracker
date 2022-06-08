@@ -1285,7 +1285,7 @@ const Main = ({navigation}) => {
 
     useEffect(async () => {
       console.log("****", count)
-      if (count == 0) {
+      if (count < 2) {
         getHabits();
       }
       else if (count <= habits.length*2) {
@@ -1297,51 +1297,6 @@ const Main = ({navigation}) => {
     }, [count])
 
 
-    // useEffect(async () => {
-    //   if (habits.length == 0) {
-    //     getHabits();
-    //   }
-    // })
-
-    // useEffect(async () => {
-    //   if (count < habits.length+1) {
-    //     // for (let i = 0; i < habits.length; i++) {
-    //     console.log(">>>", i)
-    //     console.log(count)
-    //     let results = await getStreaks()
-    //     setHabits(results);
-    //     // }
-    //   }
-    // }, [count])
-
-    // useEffect(async () => {
-    //   console.log("START", habitsFetched)
-    //   // setHabitsFetched(habitsFetched + 1)
-    //   // if (habits.length == 0) {
-    //   console.log("HABITS LENGTH = 0", habitsFetched)
-    //   if (habits.length == 0) {
-    //     getHabits();
-    //   }
-    // })
-
-    // useEffect(async () => {
-    //   console.log("Here", habitsFetched)
-    //   if (habitsFetched < habits.length*2 ) {
-    //     // setCounter(count+1);
-    //     let results = await getRecurrence()
-    //     setHabits(results);
-    //     console.log("FETCH")
-    //   }
-    // }, [habitsFetched])
-
-    // useEffect(async () => {
-    //   if (count < habits.length+1) {
-    //     setCounter(count+1);
-    //     let results = await getStreaks()
-    //     setHabits(results);
-    //     console.log("hiii")
-    //   }
-    // }, [count])
 
     return (
       <NativeBaseProvider>

@@ -483,6 +483,7 @@ const Main = ({navigation}) => {
             setRecurrence("");
             setFormOfMeasurement("");
             setGoal("");
+            setCounter(0);
           },
           error => {
             console.log("error on adding habit " + error.message);
@@ -491,10 +492,10 @@ const Main = ({navigation}) => {
       });
 
       setShowModal(false);
-      setCounter(0);
-      let results = getStreaks()
-      setHabits(results);
-      getStreaks();
+      // setCounter(0);
+      // let results = getStreaks()
+      // setHabits(results);
+      // getStreaks();
     };
   
     const editHabit = () => {
@@ -585,6 +586,7 @@ const Main = ({navigation}) => {
               setRecurrence("");
               setFormOfMeasurement("");
               setGoal("");
+              setCounter(0);
             },
             error => {
               console.log("error on editing habit " + error.message);
@@ -593,10 +595,10 @@ const Main = ({navigation}) => {
         });
   
         setShowModal(false);
-        setCounter(0);
-        let results = getStreaks()
-        setHabits(results);
-        getStreaks();
+        // setCounter(0);
+        // let results = getStreaks()
+        // setHabits(results);
+        // getStreaks();
       };
     
       const loadEdit = (editID) => {
@@ -622,6 +624,7 @@ const Main = ({navigation}) => {
             [],
             (sqlTxn, res) => {
               console.log(`Deleted successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
+              setCounter(0);
             },
             error => {
               console.log("error on deleting habit " + error.message);
@@ -693,7 +696,8 @@ const Main = ({navigation}) => {
             
               setHabits(results);
               setHabitsFetched(habitsFetched + 1)
-              setCounter(count + 1);
+              // setCounter(count + 1);
+              setCounter(count+1);
               console.log("habit results" + results);
             } else {
               setHabits([]);
@@ -1020,6 +1024,8 @@ const Main = ({navigation}) => {
             console.log("Days More:",daysmore)
             console.log("Next Recurrence",nextrec)
             console.log("Day today", day)
+
+            setCounter(count+1);
           },
           error => {
             console.log("error on getting latest date " + error.message);
@@ -1278,15 +1284,35 @@ const Main = ({navigation}) => {
     })
 
     useEffect(async () => {
-      if (count < habits.length+1) {
-        for (let i = 0; i < habits.length; i++) {
-          console.log(">>>", i)
-          console.log(count)
-          let results = await getStreaks()
-          setHabits(results);
-        }
+      console.log("****", count)
+      if (count == 0) {
+        getHabits();
+      }
+      else if (count <= habits.length*2) {
+        
+        let results = await getStreaks()
+        setHabits(results);
+        // setCounter(count+1);
       }
     }, [count])
+
+
+    // useEffect(async () => {
+    //   if (habits.length == 0) {
+    //     getHabits();
+    //   }
+    // })
+
+    // useEffect(async () => {
+    //   if (count < habits.length+1) {
+    //     // for (let i = 0; i < habits.length; i++) {
+    //     console.log(">>>", i)
+    //     console.log(count)
+    //     let results = await getStreaks()
+    //     setHabits(results);
+    //     // }
+    //   }
+    // }, [count])
 
     // useEffect(async () => {
     //   console.log("START", habitsFetched)

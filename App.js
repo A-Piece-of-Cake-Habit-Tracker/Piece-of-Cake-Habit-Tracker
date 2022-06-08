@@ -203,7 +203,7 @@ const Main = ({navigation}) => {
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
-          //`DROP TABLE habits`,
+          // `DROP TABLE habits`,
           `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT,
             habitName TEXT,
             recurrence INTEGER,
@@ -226,7 +226,7 @@ const Main = ({navigation}) => {
 
       db.transaction(txn => {
         txn.executeSql(
-          // `DROP TABLE habitsCalendar`,
+          //`DROP TABLE habitsCalendar`,
           `CREATE TABLE IF NOT EXISTS habitsCalendar (
             id INTEGER,
             date DATE,
@@ -379,15 +379,15 @@ const Main = ({navigation}) => {
         incomplete.push("recurrence")
       }
 
-      if (!formOfMeasurement) {
+      /*if (!formOfMeasurement) {
         incomplete.push("form of measurement")
-      }
+      }*/
 
       if (!goal) {
         incomplete.push("goal")
       }
 
-      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+      if (!habitName || !recurrence ||/* !formOfMeasurement ||*/ !goal) {
         var str = "Please enter the ";
         for(var i = 0; i < incomplete.length; i++) {
           if (incomplete.length == 1){
@@ -456,7 +456,7 @@ const Main = ({navigation}) => {
       "'," +
       recurrence +
       "," +
-      formOfMeasurement +
+      /*formOfMeasurement*/ 1 +
       "," +
       goal +
       "," +
@@ -510,15 +510,15 @@ const Main = ({navigation}) => {
         incomplete.push("recurrence")
       }
 
-      if (!formOfMeasurement) {
+      /*if (!formOfMeasurement) {
         incomplete.push("form of measurement")
-      }
+      }*/ 
 
       if (!goal) {
         incomplete.push("goal")
       }
 
-      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+      if (!habitName || !recurrence || /*!formOfMeasurement ||*/ !goal) {
         var str = "Please enter the ";
         for(var i = 0; i < incomplete.length; i++) {
           if (incomplete.length == 1){
@@ -566,7 +566,7 @@ const Main = ({navigation}) => {
         "', recurrence='" +
         recurrence +
         "', formOfMeasurement=" +
-        formOfMeasurement +
+        1/*formOfMeasurement*/ +
         ", goal='" +
         goal +
         "' WHERE id="
@@ -1440,41 +1440,7 @@ const Main = ({navigation}) => {
                              />
                         </FormControl>
 
-                        <FormControl isRequired>
-                            <FormControl.Label>Form of measurement</FormControl.Label>
-                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"
-                        defaultValue={
-                          (toggleEdit && formOfMeasurement==2) ? "2"
-                          : (toggleEdit && formOfMeasurement==1) ? "1" : null
-                        }>
-                            <HStack>
-                            <Radio
-                                colorScheme="gray"
-                                value="1"
-                                status= { formOfMeasurement === '1' ? 'checked' : 'unchecked' }
-                                onPress={() => setFormOfMeasurement(1)}
-                                name="formOfMeasurement"
-                                mt={1}
-                                mr={5}
-                                // onPress={setFormOfMeasurement}
-                            >
-                                Increment
-                            </Radio>
-                            <Radio
-                                colorScheme="gray"
-                                value="2"
-                                status= { formOfMeasurement === '2' ? 'checked' : 'unchecked' }
-                                onPress={() => setFormOfMeasurement(2)}
-                                name="formOfMeasurement"
-                                mt={1}
-                                mr={5}
-                                // onPress={setFormOfMeasurement}
-                            >
-                                Timer
-                            </Radio>
-                            </HStack>
-                        </Radio.Group>
-                        </FormControl>
+                        {/*REMOVED FormControl Form of Measurement*/}
 
                         <FormControl isRequired>
                             <FormControl.Label>Goal</FormControl.Label>

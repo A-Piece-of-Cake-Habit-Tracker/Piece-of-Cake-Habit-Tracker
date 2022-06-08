@@ -1269,7 +1269,7 @@ const Main = ({navigation}) => {
         checkIfReset();
         getName();
         setCounter(0);
-        // getHabits();
+        getHabits();
       })();
     
       return () => {
@@ -1277,11 +1277,11 @@ const Main = ({navigation}) => {
       };
     }, []);
 
-    useEffect(async () => {
-      if (habits.length == 0) {
-        getHabits();
-      }
-    })
+    // useEffect(async () => {
+    //   if (habits.length == 0) {
+    //     getHabits();
+    //   }
+    // })
 
     useEffect(async () => {
       console.log("****", count)

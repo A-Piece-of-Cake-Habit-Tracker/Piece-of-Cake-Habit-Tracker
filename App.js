@@ -1819,7 +1819,7 @@ const Main = ({navigation}) => {
       let date = year+'-'+month+'-'+day;
 
       let yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setDate(yesterday.getDate());
 
       year = yesterday.getFullYear()
       month = yesterday.getMonth()+1
@@ -1846,6 +1846,7 @@ const Main = ({navigation}) => {
             if (res.rows.length > 0) {
               let latestDate = res.rows.item(0)["latest_date"];
             // console.log(">>>> ", res.rows.item(0)["current_streak"], latestDate)
+              console.log(">>>>>", latestDate, today)
               if (date != latestDate && latestDate != yesterdayDate) {
                 // console.log("++++++", date, latestDate)
                 item.currentStreak = 0;

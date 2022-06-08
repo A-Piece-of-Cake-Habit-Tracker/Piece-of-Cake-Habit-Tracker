@@ -1816,7 +1816,7 @@ const Main = ({navigation}) => {
         day = '0' + day;
       }
 
-      let date = year+'-'+month+'-'+day;
+      let todayDate = year+'/'+month+'/'+day;
 
       let yesterday = new Date()
       yesterday.setDate(yesterday.getDate());
@@ -1846,8 +1846,15 @@ const Main = ({navigation}) => {
             if (res.rows.length > 0) {
               let latestDate = res.rows.item(0)["latest_date"];
             // console.log(">>>> ", res.rows.item(0)["current_streak"], latestDate)
-              console.log(">>>>>", latestDate, today)
-              if (date != latestDate && latestDate != yesterdayDate) {
+              latestDate = latestDate.replace(/-/g,'/')  
+              var date1 = new Date(todayDate)
+              var date2 = new Date(latestDate)
+              
+              var Difference_In_Time = date1.getTime() - date2.getTime();
+              var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+              console.log(">>>>>", Difference_In_Days)
+              if (date != latestDate && Difference_In_Days > item.recurrence) {
                 // console.log("++++++", date, latestDate)
                 item.currentStreak = 0;
               } else {

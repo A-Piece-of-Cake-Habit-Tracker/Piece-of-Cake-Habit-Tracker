@@ -995,19 +995,25 @@ const Main = ({navigation}) => {
         month = '0' + month
       }
 
+      let dayString = day;
+      
       if (day < 10) {
-        day = '0' + day
+        dayString = '0' + dayString
       }
 
-      let todayDate = year+'-'+month+'-'+day;
+      let todayDate = year+'-'+month+'-'+dayString;
 
       db.transaction(function (tx) {
         tx.executeSql(
           "SELECT MAX(date) FROM habitsCalendar WHERE id=" + item.id,
           [],
           (sqlTxn, res) => {
+            // if (res.rows.length == 0) {
+            // let cur = 0
+            // }
+            // else {
             let cur = res.rows.item(0)["MAX(date)"]
-
+            console.log("^^", cur)
             let nextrec;
             if (cur!=null)
             {
@@ -1062,6 +1068,7 @@ const Main = ({navigation}) => {
             console.log("Day today", day)
 
             setCounter(count+1);
+          // }
           },
           error => {
             console.log("error on getting latest date " + error.message);

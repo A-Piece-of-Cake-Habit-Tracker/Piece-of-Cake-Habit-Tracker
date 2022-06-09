@@ -986,10 +986,19 @@ const Main = ({navigation}) => {
     function updateRecurrence(item) {
       let today = new Date()
       let day = today.getDate()
-      let month = today.getMonth()
+      let month = today.getMonth()+1
       let year = today.getFullYear()
 
       let daysmonth=new Date(year, month, 0).getDate()
+
+      if (month < 10) {
+        month = '0' + month
+      }
+
+      if (day < 10) {
+        day = '0' + day
+      }
+
       let todayDate = year+'-'+month+'-'+day;
 
       db.transaction(function (tx) {
@@ -1024,22 +1033,27 @@ const Main = ({navigation}) => {
               daysmore=0;
             }
 
-            // console.log(cur, todayDate)
+            console.log(cur, todayDate)
 
-            // console.log("/",daysmore)
-
+            console.log("/",daysmore, item.skipped)
+            
             if (cur != todayDate && daysmore == 0) {
+              console.log("$$", 1)
               item.skipped = 0
+              item.daysMore = recurrence
             }
 
             else if (item.skipped==1 && daysmore==0)
             {
+              console.log("$$", 2)
               item.daysmore=item.recurrence;
             }
             else
             {
+              console.log("$$", 3)
               item.daysmore=daysmore;
             }
+
             setHabits(habits);
             console.log(item.daysmore)
             

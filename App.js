@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { get } from "react-native/Libraries/Utilities/PixelRatio";
 import {Calendar} from 'react-native-calendars';
 
-LogBox.ignoreLogs(['NativeBase:']);
+LogBox.ignoreLogs(['NativeBase:', "VirtualizedLists should never be nested"]);
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 

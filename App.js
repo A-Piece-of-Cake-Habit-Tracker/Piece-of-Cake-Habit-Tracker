@@ -11,8 +11,10 @@ import { useNavigation } from '@react-navigation/native';
 import GestureRecognizer, {swipeDirections} from 'react-native-swipe-gestures';
 import OutsideView from 'react-native-detect-press-outside';
 import { LinearGradient } from 'expo-linear-gradient';
+import { get } from "react-native/Libraries/Utilities/PixelRatio";
+import {Calendar} from 'react-native-calendars';
 
-LogBox.ignoreLogs(['NativeBase:']);
+LogBox.ignoreLogs(['NativeBase:', "VirtualizedLists should never be nested"]);
 
 const db = SQLite.openDatabase("e:\\database\\habitTracker.db");
 
@@ -24,7 +26,7 @@ function Bottom () {
   var height = Dimensions.get('window').height;
   var width = Dimensions.get('window').width;
   const navigation = useNavigation(); 
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(0);
   const config = {
     dependencies: {
       "linear-gradient": LinearGradient
@@ -33,12 +35,24 @@ function Bottom () {
   return <NativeBaseProvider config={config}>
       <Box flexDirection="row" alignItems="center" width={width} height = "125" bg={{linearGradient: {colors: ["#25BAE5", "#69B2F4"], start: [0, 0], end: [0, 1]}}} m="0">
         <HStack width={width} height = "125" maxWidth="100%" space={3} justifyContent="space-evenly">
-            <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
+            {/* <Pressable mt="1" alignItems="center" opacity={selected === 0 ? 1 : 0.5} onPress={() => {navigation.navigate("Main"); setSelected(0)}}>
                 <Icon as={MaterialCommunityIcons} name="home-variant" size="lg" color="white"/>
             </Pressable>
             <Pressable mt="1" alignItems="center" opacity={selected === 1 ? 1 : 0.5} onPress={() => {navigation.navigate("Statistics"); setSelected(1)}}>
                 <Icon as={Entypo} name="bar-graph" size="lg" color="white"/>
-            </Pressable>
+            </Pressable> */}
+            <IconButton
+                variant="link" 
+                onPress={() => {navigation.navigate("Main")}}
+                icon={<Icon as ={MaterialCommunityIcons} name="home-variant" size="lg" color="#86E9FA"/>} _pressed={{
+                  _icon: {color: "white"}
+                  }}/>
+            <IconButton
+                variant="link"
+                onPress={() => {navigation.navigate("Statistics")}}
+                icon={<Icon as={Entypo} name="bar-graph" size="lg" color="#86E9FA"/>} _pressed={{
+                  _icon: {color: "white"}
+                  }}/>
         </HStack>
       </Box> 
       </NativeBaseProvider>;
@@ -87,15 +101,16 @@ const Main = ({navigation}) => {
   const [itemID, setitemID] = useState(0);
   const [progressDisplay, setProgressDisplay] = useState("");
   const [formOfMeasurementOut, setFormOfMeasurementOut]= useState("");
+  const [nextRecurrence, setnextRecurrence]= useState("");
   const [isSkip,setIsSkip]= useState(false);
   const [doesExist, setDoesExist] = useState(null);
-  const [currentStreak, setCurrentStreak] = useState(null);
-  const [bestStreak, setBestStreak] = useState(null);
+  const [currentStreak, setCurrentStreak] = useState("");
+  const [bestStreak, setBestStreak] = useState("");
   const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
-  const [caption, setCaption] = useState("")
-  const [unable, setUnable] = useState(0)
-
   const [userName, setUserName] = useState("");
+  const [count, setCounter]= useState(0);
+  const [daysMore, setDaysMore] = useState("")
+  const [habitsFetched, setHabitsFetched] = useState(0)
 
     //useEffect added
     useEffect(() => {
@@ -188,7 +203,7 @@ const Main = ({navigation}) => {
     const createTables = () => {
       db.transaction(txn => {
         txn.executeSql(
-          //`DROP TABLE habits`,
+          // `DROP TABLE habits`,
           `CREATE TABLE IF NOT EXISTS habits (id INTEGER PRIMARY KEY AUTOINCREMENT,
             habitName TEXT,
             recurrence INTEGER,
@@ -211,10 +226,11 @@ const Main = ({navigation}) => {
 
       db.transaction(txn => {
         txn.executeSql(
-          // `DROP TABLE habitsCalendar`,
+          //`DROP TABLE habitsCalendar`,
           `CREATE TABLE IF NOT EXISTS habitsCalendar (
             id INTEGER,
             date DATE,
+            skipped INTEGER,
             CONSTRAINT fk_id
               FOREIGN KEY (id)
               REFERENCES habits(id)
@@ -363,15 +379,15 @@ const Main = ({navigation}) => {
         incomplete.push("recurrence")
       }
 
-      if (!formOfMeasurement) {
+      /*if (!formOfMeasurement) {
         incomplete.push("form of measurement")
-      }
+      }*/
 
       if (!goal) {
         incomplete.push("goal")
       }
 
-      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+      if (!habitName || !recurrence ||/* !formOfMeasurement ||*/ !goal) {
         var str = "Please enter the ";
         for(var i = 0; i < incomplete.length; i++) {
           if (incomplete.length == 1){
@@ -440,7 +456,7 @@ const Main = ({navigation}) => {
       "'," +
       recurrence +
       "," +
-      formOfMeasurement +
+      /*formOfMeasurement*/ 1 +
       "," +
       goal +
       "," +
@@ -467,6 +483,7 @@ const Main = ({navigation}) => {
             setRecurrence("");
             setFormOfMeasurement("");
             setGoal("");
+            setCounter(0);
           },
           error => {
             console.log("error on adding habit " + error.message);
@@ -475,6 +492,10 @@ const Main = ({navigation}) => {
       });
 
       setShowModal(false);
+      // setCounter(0);
+      // let results = getStreaks()
+      // setHabits(results);
+      // getStreaks();
     };
   
     const editHabit = () => {
@@ -489,15 +510,15 @@ const Main = ({navigation}) => {
         incomplete.push("recurrence")
       }
 
-      if (!formOfMeasurement) {
+      /*if (!formOfMeasurement) {
         incomplete.push("form of measurement")
-      }
+      }*/ 
 
       if (!goal) {
         incomplete.push("goal")
       }
 
-      if (!habitName || !recurrence || !formOfMeasurement || !goal) {
+      if (!habitName || !recurrence || /*!formOfMeasurement ||*/ !goal) {
         var str = "Please enter the ";
         for(var i = 0; i < incomplete.length; i++) {
           if (incomplete.length == 1){
@@ -545,7 +566,7 @@ const Main = ({navigation}) => {
         "', recurrence='" +
         recurrence +
         "', formOfMeasurement=" +
-        formOfMeasurement +
+        1/*formOfMeasurement*/ +
         ", goal='" +
         goal +
         "' WHERE id="
@@ -565,6 +586,7 @@ const Main = ({navigation}) => {
               setRecurrence("");
               setFormOfMeasurement("");
               setGoal("");
+              setCounter(0);
             },
             error => {
               console.log("error on editing habit " + error.message);
@@ -573,6 +595,10 @@ const Main = ({navigation}) => {
         });
   
         setShowModal(false);
+        // setCounter(0);
+        // let results = getStreaks()
+        // setHabits(results);
+        // getStreaks();
       };
     
       const loadEdit = (editID) => {
@@ -598,6 +624,7 @@ const Main = ({navigation}) => {
             [],
             (sqlTxn, res) => {
               console.log(`Deleted successfully: ${habitName} ${recurrence} ${formOfMeasurement} ${goal}`);
+              setCounter(0);
             },
             error => {
               console.log("error on deleting habit " + error.message);
@@ -651,24 +678,6 @@ const Main = ({navigation}) => {
     };
 
     const getHabits = () => {
-      console.log("HELLO")
-      let currentDate;
-
-      let today = new Date()
-      let year = today.getFullYear()
-      let month = today.getMonth()+1
-      let day = today.getDate()
-
-      if (month < 10) {
-        month = '0' + month
-      }
-
-      if (day < 10) {
-        day = '0' + day
-      }
-
-      currentDate = new Date(year+'-'+month+'-'+day)
-
       db.transaction(txn => {
         txn.executeSql(
           `SELECT * FROM habits ORDER BY id DESC`,
@@ -681,15 +690,15 @@ const Main = ({navigation}) => {
               let results = [];
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-
-
-                // results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, date: item.date});
-
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, date: item.date, unable: null, daysLeft: null});
+                // results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, date: item.date });
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, skips: item.skips, skipped: item.skipped, daysmore: 0, date: item.date });
               }
-
+            
               setHabits(results);
-              // console.log("habit results" + results);
+              setHabitsFetched(habitsFetched + 1)
+              // setCounter(count + 1);
+              setCounter(count+1);
+              console.log("habit results" + results);
             } else {
               setHabits([]);
               console.log("no more habits");
@@ -700,57 +709,6 @@ const Main = ({navigation}) => {
           },
         );
       });
-      
-
-      let results = habits
-      for (let i = 0; i < results.length; i++) {
-        
-        let item = results[i]
-
-        console.log("====== " + item.habitName + " =======")
-
-        // check last date stored, which will be compared with current date
-        // console.log(item.habitName + " >>> rec: " + item.recurrence)
-        db.transaction(function (tx) {
-        tx.executeSql(
-          "SELECT MAX(date) as \"lastDateStored\" FROM habitsCalendar WHERE id=" + item.id,
-          [],
-          (sqlTxn, res) => {
-            let lastDateStored;
-            lastDateStored = new Date(res.rows.item(0)["lastDateStored"])
-
-            let differenceInDays = Math.abs(currentDate - lastDateStored)
-            differenceInDays = differenceInDays / (1000 * 60 * 60 * 24)
-
-            let actualDifference = item.recurrence - differenceInDays
-
-            console.log("### " + item.habitName + " >>> days left: " + actualDifference)
-            
-            if (actualDifference > 0) {
-              item.daysLeft = actualDifference
-              item.unable = 1
-            } else {
-              item.daysLeft = 0
-              item.unable = 0
-            }
-
-            console.log("HABIT + " + item.habitName + " " + item.unable)
-            setHabits(results)
-            
-          },
-          error => {
-            console.log("error on getting lastDateStored " + error.message);
-          },
-        );
-        });
-
-        console.log("HABIT > " + item.habitName + " " + item.unable)
-        console.log("====== " + item.habitName + " =======")
-      }
-
-      setHabits(results)
-      console.log("!!!!!!!!!")
-      console.log(habits)
     };
 
     function updateHabit(item, action) {
@@ -800,10 +758,6 @@ const Main = ({navigation}) => {
       "' WHERE id=" +
       item.id;
 
-      // console.log(updateHabitsTable)
-
-      // console.log("!!! updating: " + item.id)
-
       db.transaction(function (tx) {
         tx.executeSql(
           updateHabitsTable,
@@ -817,12 +771,11 @@ const Main = ({navigation}) => {
         );
       });
 
-      // console.log('--- doesExist: ' + doesExist)
 
       let currentDoesExist = false;
 
       if (item.progress < item.goal) {
-        // console.log(">>>>>>> progress < goal from habitsCalendar")
+        // console.log(">>>>>>>s progress < goal from habitsCalendar")
         setDoesExist(false)
         currentDoesExist = false;
         // console.log('==== doesExist: ' + currentDoesExist)
@@ -861,11 +814,11 @@ const Main = ({navigation}) => {
           // console.log(date)
           // if habit is done, add entry to habitsCalendar
           const insertHabitsCalendarTable =
-          "INSERT INTO habitsCalendar (id,date) VALUES (" +
+          "INSERT INTO habitsCalendar (id,date,skipped) VALUES (" +
           item.id +
           ",'" +
           date +
-          "')";
+          "', 0)";
 
           db.transaction(function (tx) {
             tx.executeSql(
@@ -899,7 +852,6 @@ const Main = ({navigation}) => {
       });
 
       // print all entries in habitsCalendarList
-
       db.transaction(function (tx) {
         tx.executeSql(
           "SELECT * FROM habitsCalendar" ,
@@ -907,10 +859,12 @@ const Main = ({navigation}) => {
           (sqlTxn, res) => {
             var len = res.rows.length;
             console.log("len: " +len);
+            console.log("==== habitsCalendar ====")
             for (let i = 0; i < len; i++) {
                  let rowID = res.rows.item(i)["id"];
                  let rowDate = res.rows.item(i)["date"];
-                 console.log("+++ " + rowID + " " + rowDate)
+                 let rowSkipped = res.rows.item(i)["skipped"];
+                 console.log("+++ " + rowID + " " + rowDate + " " + rowSkipped)
              }
           },
           error => {
@@ -918,7 +872,6 @@ const Main = ({navigation}) => {
           },
         );
       });
-
     }
 
     function skipHabit() {
@@ -965,9 +918,142 @@ const Main = ({navigation}) => {
           },
         );
       });
+
+      let today = new Date()
+      let year = today.getFullYear()
+      let month = today.getMonth()+1
+      let day = today.getDate()
+      
+      if (month < 10) {
+        month = '0' + month
+      }
+
+      if (day < 10) {
+        day = '0' + day
+      }
+
+      let date = year+'-'+month+'-'+day;      
+
+      const insertHabitsCalendarTable =
+      "INSERT INTO habitsCalendar (id,date,skipped) VALUES (" +
+      itemID +
+      ",'" +
+      date +
+      "', 1)";
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          insertHabitsCalendarTable,
+          [],
+          (sqlTxn, res) => {
+            console.log("finished inserting skipped habit in habitsCalendar: " + itemID + " " + date);
+          },
+          error => {
+            console.log("error on inserting skipped habit in habitsCalendar: " + error.message);
+          },
+        );
+      });
+
+      console.log(insertHabitsCalendarTable)
+
+      // print all entries in habitsCalendarList
+      db.transaction(function (tx) {
+        tx.executeSql(
+          "SELECT * FROM habitsCalendar" ,
+          [],
+          (sqlTxn, res) => {
+            var len = res.rows.length;
+            console.log("len: " +len);
+            console.log("==== habitsCalendar ====")
+            for (let i = 0; i < len; i++) {
+                  let rowID = res.rows.item(i)["id"];
+                  let rowDate = res.rows.item(i)["date"];
+                  let rowSkipped = res.rows.item(i)["skipped"];
+                  console.log("+++ " + rowID + " " + rowDate + " " + rowSkipped)
+              }
+          },
+          error => {
+            console.log("error on counting " + error.message);
+          },
+        );
+      });
+
       setSkipOpen(false);
       setSkipsDisplay(val);
       getHabits();
+    }
+
+    function updateRecurrence(item) {
+      let today = new Date()
+      let day = today.getDate()
+      let month = today.getMonth()
+      let year = today.getFullYear()
+
+      let daysmonth=new Date(year, month, 0).getDate()
+      let todayDate = year+'-'+month+'-'+day;
+
+      db.transaction(function (tx) {
+        tx.executeSql(
+          "SELECT MAX(date) FROM habitsCalendar WHERE id=" + item.id,
+          [],
+          (sqlTxn, res) => {
+            let cur = res.rows.item(0)["MAX(date)"]
+
+            let nextrec;
+            if (cur!=null)
+            {
+              nextrec= new Date(res.rows.item(0)["MAX(date)"]).getDate() + item.recurrence;
+            }
+            else
+            {
+              nextrec = 0;
+            }
+
+            if (nextrec>daysmonth){
+              nextrec=nextrec-daysmonth;
+            }
+            let daysmore= nextrec- day;
+            if (daysmore <0){
+              daysmore=daysmore+day;
+            }
+
+            
+
+            if(item.recurrence-daysmore==0)
+            {
+              daysmore=0;
+            }
+
+            // console.log(cur, todayDate)
+
+            // console.log("/",daysmore)
+
+            if (cur != todayDate && daysmore == 0) {
+              item.skipped = 0
+            }
+
+            else if (item.skipped==1 && daysmore==0)
+            {
+              item.daysmore=item.recurrence;
+            }
+            else
+            {
+              item.daysmore=daysmore;
+            }
+            setHabits(habits);
+            console.log(item.daysmore)
+            
+            console.log("Days More:",daysmore)
+            console.log("Next Recurrence",nextrec)
+            console.log("Day today", day)
+
+            setCounter(count+1);
+          },
+          error => {
+            console.log("error on getting latest date " + error.message);
+          },
+        );
+      });
     }
 
     const viewHabit = (item) => {
@@ -982,6 +1068,7 @@ const Main = ({navigation}) => {
       setProgressDisplay(item.progress);
       setFormOfMeasurementOut(item.formOfMeasurement);
       setIsSkip(item.skipped);
+      setDaysMore(item.daysmore)
       if (item.formOfMeasurement == 1) {
         setFormOfMeasurementDisplay("Increment");
       } else {
@@ -989,152 +1076,7 @@ const Main = ({navigation}) => {
       }
 
     }
-
-    const getStreak = (id) => {
-  
-
-      const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
-
-      // console.log(bestStreakSql);
-
-      const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
-
-      // console.log(bestStreakSql);
-
-      let today = new Date();
-      let year = today.getFullYear();
-      let month = today.getMonth()+1;
-      let day = today.getDate();
-      
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      if (day < 10) {
-        day = '0' + day;
-      }
-
-      let date = year+'-'+month+'-'+day;
-
-      db.transaction(function (tx) {
-        tx.executeSql(
-          bestStreakSql,
-          [],
-          (sqlTxn, res) => {
-            setBestStreak(res.rows.item(0)["best_streak"]);
-            // console.log("best streak: " + bestStreak);÷
-            // console.log("actual best streak: " + bestStreak);
-          },
-          error => {
-            console.log("error on getting best streak " + error.message);
-          },
-        );
-      });
-
-      db.transaction(function (tx) {
-        tx.executeSql(
-          currentStreakSql,
-          [],
-          (sqlTxn, res) => {
-            let latestDate = res.rows.item(0)["latest_date"];
-            if (date != latestDate) {
-              setCurrentStreak(0);
-            } else {
-              setCurrentStreak(res.rows.item(0)["current_streak"]);
-            }
-            // console.log("actual current streak: " + currentStreak);
-          },
-          error => { 
-            console.log("error on getting current streak " + error.message);
-          },
-        );
-      });
-    }
-
-    const getCurrentStreak = (item) => {
-
-      let id = item.id
-      let recurrence = item.recurrence
-      // console.log(":::", item)
-      // console.log("streak id: ", id)
-
-      // const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
-
-      const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
-
-      let today = new Date();
-      let year = today.getFullYear();
-      let month = today.getMonth()+1;
-      let day = today.getDate();
-      
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      if (day < 10) {
-        day = '0' + day;
-      }
-
-      let date = year+'-'+month+'-'+day;
-
-      // db.transaction(function (tx) {
-      //   tx.executeSql(
-      //     bestStreakSql,
-      //     [],
-      //     (sqlTxn, res) => {
-      //       setBestStreak(res.rows.item(0)["best_streak"]);
-      //       // console.log("best streak: " + bestStreak);÷
-      //       console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
-      //       item.bestStreak = res.rows.item(0)["best_streak"];
-      //     },
-      //     error => {
-      //       console.log("error on getting best streak " + error.message);
-      //     },
-      //   );
-      // });
-
-      let yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      year = yesterday.getFullYear()
-      month = yesterday.getMonth()+1
-      day = yesterday.getDate()
-
-      if (month < 10) {
-        month = '0' + month
-      }
-
-      if (day < 10) {
-        day = '0' + day
-      }
-
-      let yesterdayDate = year+'-'+month+'-'+day;
-
-      // console.log(yesterdayDate);
-
-      db.transaction(function (tx) {
-        tx.executeSql(
-          currentStreakSql,
-          [],
-          (sqlTxn, res) => {
-            let latestDate = res.rows.item(0)["latest_date"];
-            if (date != latestDate && latestDate != yesterdayDate) {
-              // setCurrentStreak(0);
-              item.currentStreak = 0;
-            } else {
-              // setCurrentStreak(res.rows.item(0)["current_streak"]);
-              item.currentStreak = res.rows.item(0)["current_streak"];
-            }
-            // console.log("actual current streak: " + item.currentStreak);
-            // console.log(item.habitName + " actual current streak: " + res.rows.item(0)["current_streak"]);
-          },
-          error => { 
-            console.log("error on getting current streak " + error.message);
-          },
-        );
-      });
-    }
-
+ 
     const config = {
       dependencies: {
         "linear-gradient": LinearGradient
@@ -1142,18 +1084,20 @@ const Main = ({navigation}) => {
     };
 
     const renderHabit = ({ item }) => {
-
+      
       return (
         <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
-                bg= {(item.skipped==0 && item.unable==0)? "white": "trueGray.300"}
+                // bg= {item.skipped==0 ? "white": "trueGray.300"}
+                bg= {(item.skipped==0 && item.daysmore==0) ? "white": "trueGray.300"}
                 // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}
                 flexDirection="row"
                 // style={{flexWrap: "wrap", overflow: "hidden"}}
-                onPress={() => viewHabit(item)}
+                // onPress={() => viewHabit(item)}
+                onPress={() => {viewHabit(item)}}
                 style={{
                   flexWrap: "wrap",
                   overflow: "hidden",
@@ -1173,13 +1117,7 @@ const Main = ({navigation}) => {
                           colors: ["#0ABEE0", "#71B0F4"],
                           start: [0, 0],
                           end: [0, 1]
-                        }}}
-                    style={
-                      (item.skipped==1 || item.unable==1) ?
-                      {backgroundColor: "gray"}
-                      : item.progress === item.goal?
-                      {backgroundColor: "#08E17C"}
-                      : {backgroundColor: "#10BCE1"}
+                        }}
                     }
                     alignItems="center"
                     justifyContent="center"> 
@@ -1193,7 +1131,8 @@ const Main = ({navigation}) => {
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
                           <HStack alignItems={"flex-start"}>
-                            {(item.skipped==0 && item.unable==0) &&
+                            {/* {item.skipped==0 && */}
+                            {(item.skipped==0 && item.daysmore==0) &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
@@ -1205,18 +1144,18 @@ const Main = ({navigation}) => {
                                 Goal: {item.goal} time/s
                               </Text>
                             }
-                            {(item.skipped==1 || item.unable==1) &&
+                            {/* {item.skipped==1 && */}
+                            {((item.skipped==1||item.daysmore>0)&& (item.progress!=item.goal)) &&
                               <Text fontSize="sm"
                               fontWeight="bold"
                               // color="cyan.600"
                               style={
-                                (item.skipped==1 || item.unable==1) ?
-                                {color: "gray"}
-                                : item.progress === item.goal?
+                                item.progress === item.goal ?
                                 {color: "#08E17C"}
                                 : {color: "#10BCE1"}
                               }>
-                                Do in {item.daysLeft} day/s
+                                {/* Do in {item.recurrence} day/s */}
+                                Do in {item.daysmore} day/s
                               </Text>
                             }
                           </HStack>
@@ -1232,15 +1171,17 @@ const Main = ({navigation}) => {
                                 alignItems="center"
                                 variant="ghost"
                                 style={
-                                  item.progress === item.goal ?
+                                  item.progress === item.goal || (item.skipped==1 || item.daysmore>0) ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#08E17C"}
                                 }
-                                disabled= {(item.skipped==1 || item.unable==1)? true:false}
+                                // disabled= {item.skipped==0 ? false:true}
+                                disabled= {(item.skipped==1 || item.daysmore>0) ? true:false}
                                 _pressed={{bgColor:'green.500'}}
                                 // shadow={3}
                                 rounded="full"
-                                onPress={() => updateHabit(item, "inc")}
+                                // onPress={() => updateHabit(item, "inc")}
+                                onPress={() => (item.skipped==1 || item.daysmore>0) ? console.log("skipped: + disabled") : updateHabit(item, "inc")}
                                 icon={<Icon as={Entypo} name="plus" />} _icon={{
                                   color: "white",
                                   size: "20px",
@@ -1252,15 +1193,17 @@ const Main = ({navigation}) => {
                                 alignItems="center"
                                 variant="solid"
                                 style={
-                                  item.progress === 0 ?
+                                  item.progress === 0 || (item.skipped==1 || item.daysmore>0) ?
                                   {backgroundColor: "gray"}
                                   : {backgroundColor: "#FB6767"}
                                 }
-                                disabled= {(item.skipped==1 || item.unable==1)? true:false}
+                                // disabled= {item.skipped==0 ? false:true}
+                                disabled= {(item.skipped==1 || item.daysmore>0) ? true:false}
                                 _pressed={{bgColor:'danger.500'}}
                                 
                                 rounded="full"
-                                onPress={() => updateHabit(item, "dec")}
+                                onPress={() => (item.skipped==1 || item.daysmore>0) ? console.log("skipped: - disabled") : updateHabit(item, "dec")}
+                                // onPress={() => updateHabit(item, "dec")}
                                 icon={<Icon as={Entypo} name="minus" />} _icon={{
                                   color: "white",
                                   size: "20px",
@@ -1318,17 +1261,65 @@ const Main = ({navigation}) => {
                     </VStack>
                 </Pressable>
             </Center>
+          
+            {/* <Slide in={isViewHabit} placement="top">
+              <Box p={10} _text={{
+              color: "white"
+            }} bg="teal.400" rounded="md">
+                I am coming from Top
+              </Box>
+            </Slide> */}
         </NativeBaseProvider>
       );
     };
-  
-    useEffect(async () => {
-      await createTables();
-      await getHabits();
-      await checkIfReset();
-      await getName();
+    
+    const getStreaks = async () => {
+      // console.log(results)
+
+      let results = habits
+
+      for (let i = 0; i < results.length; i++) {
+        updateRecurrence(results[i]);
+      }
+
+      return results
+    }
+
+    useEffect(() => {
+      (async function startHome () {
+        createTables();
+        checkIfReset();
+        getName();
+        setCounter(0);
+        getHabits();
+      })();
+    
+      return () => {
+        // this now gets called when the component unmounts
+      };
     }, []);
-  
+
+    // useEffect(async () => {
+    //   if (habits.length == 0) {
+    //     getHabits();
+    //   }
+    // })
+
+    useEffect(async () => {
+      console.log("****", count)
+      if (count < 2) {
+        getHabits();
+      }
+      else if (count <= habits.length*2) {
+        
+        let results = await getStreaks()
+        setHabits(results);
+        // setCounter(count+1);
+      }
+    }, [count])
+
+
+
     return (
       <NativeBaseProvider>
         <Center maxWidth="100%" flex={1} justifyContent="space-between" px="3">
@@ -1426,41 +1417,7 @@ const Main = ({navigation}) => {
                              />
                         </FormControl>
 
-                        <FormControl isRequired>
-                            <FormControl.Label>Form of measurement</FormControl.Label>
-                        <Radio.Group name="formOfMeasurementGroup" accessibilityLabel="Form of measurement"
-                        defaultValue={
-                          (toggleEdit && formOfMeasurement==2) ? "2"
-                          : (toggleEdit && formOfMeasurement==1) ? "1" : null
-                        }>
-                            <HStack>
-                            <Radio
-                                colorScheme="gray"
-                                value="1"
-                                status= { formOfMeasurement === '1' ? 'checked' : 'unchecked' }
-                                onPress={() => setFormOfMeasurement(1)}
-                                name="formOfMeasurement"
-                                mt={1}
-                                mr={5}
-                                // onPress={setFormOfMeasurement}
-                            >
-                                Increment
-                            </Radio>
-                            <Radio
-                                colorScheme="gray"
-                                value="2"
-                                status= { formOfMeasurement === '2' ? 'checked' : 'unchecked' }
-                                onPress={() => setFormOfMeasurement(2)}
-                                name="formOfMeasurement"
-                                mt={1}
-                                mr={5}
-                                // onPress={setFormOfMeasurement}
-                            >
-                                Timer
-                            </Radio>
-                            </HStack>
-                        </Radio.Group>
-                        </FormControl>
+                        {/*REMOVED FormControl Form of Measurement*/}
 
                         <FormControl isRequired>
                             <FormControl.Label>Goal</FormControl.Label>
@@ -1585,12 +1542,24 @@ const Main = ({navigation}) => {
                   </VStack>
                 </HStack>
                 <HStack mt={8} space={10} justifyContent="space-evenly">
+                  {(isSkip==1 || daysMore>0) &&
                   <Button
                   variant="subtle"
+                  colorScheme="primary"
+                  rounded="lg"
+                  onPress={() => {setSkipOpen(true);}} isDisabled>
+                    Skip today
+                  </Button>
+                  }
+                  {!(isSkip==1 || daysMore>0) &&
+                  <Button
+                  variant="subtle"
+                  colorScheme="primary"
                   rounded="lg"
                   onPress={() => {setSkipOpen(true);}}>
                     Skip today
                   </Button>
+                  }
                   <Button
                   variant="outline"
                   rounded="lg"
@@ -1621,6 +1590,7 @@ const Main = ({navigation}) => {
               </AlertDialog>
             </Center>
           </Slide>
+      
       </NativeBaseProvider>
     );
   };
@@ -1640,7 +1610,8 @@ const Main = ({navigation}) => {
     const [countHabitsCalendarRows, setHabitsCalendarRows] = useState(null);
     const [currentStreakDisplay, setCurrentStreakDisplay] = useState(null);
     const [bestStreakDisplay, setBestStreakDisplay] = useState(null);
-
+    const [habitsFetched, setHabitsFetched] = useState(0);
+    const [streakdates, setStreakDates] = useState({}); //for streak dates
     const [userNameDisplay,setuserNameDisplay]= useState("");
     //useEffect added
     useEffect(() => {
@@ -1740,13 +1711,15 @@ const Main = ({navigation}) => {
   
             if (len > 0) {
               let results = [];
+
               for (let i = 0; i < len; i++) {
                 let item = res.rows.item(i);
-                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, bestStreak, currentStreak});
+
+                results.push({ id: item.id, habitName: item.habitName, recurrence: item.recurrence, formOfMeasurement: item.formOfMeasurement, goal: item.goal, progress: item.progress, bestStreak: 0, currentStreak: 0})
               }
-            
-              setHabits(results);
-              console.log("habit results" + results);
+
+              setHabits(results);    
+              setHabitsFetched(habitsFetched + 1);       
             } else {
               setHabits([]);
               console.log("no more habits");
@@ -1760,76 +1733,44 @@ const Main = ({navigation}) => {
     };
 
     const getBestStreak = (item) => {
-
       let id = item.id
       let recurrence = item.recurrence
-      // console.log(":::", item.recurrence)
-      // console.log("streak id: ", id)
 
-      const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
+      // const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
 
-      // const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
+      const bestStreakSql = "SELECT MAX(streaks) as best_streak FROM ( SELECT streak - skips as streaks FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ) )"
 
-      let today = new Date();
-      let year = today.getFullYear();
-      let month = today.getMonth()+1;
-      let day = today.getDate();
-      
-      if (month < 10) {
-        month = '0' + month;
-      }
-
-      if (day < 10) {
-        day = '0' + day;
-      }
-
-      let date = year+'-'+month+'-'+day;
+      // console.log(bestStreakSql)
 
       db.transaction(function (tx) {
         tx.executeSql(
           bestStreakSql,
           [],
           (sqlTxn, res) => {
-            setBestStreak(res.rows.item(0)["best_streak"]);
-            // console.log("best streak: " + bestStreak);÷
-            // console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
-            item.bestStreak = res.rows.item(0)["best_streak"];
+            
+            console.log("BS", item.id, "rows:", res.rows.length)
+            if (res.rows.item(0)["best_streak"] != null) {
+              item.bestStreak = res.rows.item(0)["best_streak"];
+            }
+            setHabits(habits)
+            setHabitsFetched(habitsFetched + 1);
           },
           error => {
             console.log("error on getting best streak " + error.message);
           },
         );
       });
-      // db.transaction(function (tx) {
-      //   tx.executeSql(
-      //     currentStreakSql,
-      //     [],
-      //     (sqlTxn, res) => {
-      //       let latestDate = res.rows.item(0)["latest_date"];
-      //       if (date != latestDate) {
-      //         setCurrentStreak(0);
-      //       } else {
-      //         setCurrentStreak(res.rows.item(0)["current_streak"]);
-      //       }
-      //       console.log("actual current streak: " + currentStreak);
-      //     },
-      //     error => { 
-      //       console.log("error on getting current streak " + error.message);
-      //     },
-      //   );
-      // });
     }
 
     const getCurrentStreak = (item) => {
-
       let id = item.id
       let recurrence = item.recurrence
-      // console.log(":::", item)
-      // console.log("streak id: ", id)
 
-      // const bestStreakSql = "SELECT MAX(streak) as best_streak FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference )";
+      // const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
 
-      const currentStreakSql = "SELECT streak current_streak, end_date latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )";
+      const currentStreakSql = "SELECT streak - skips as current_streak, end_date as latest_date FROM ( SELECT COUNT(date_difference) as streak, MIN(date) as start_date, MAX(date) as end_date, SUM(skipped) AS skips FROM ( SELECT (SELECT COUNT(*) FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") as row_number, date, DATE(DATE, '-' || (SELECT COUNT(*)*" + recurrence + " FROM habitsCalendar t2 WHERE t2.date <= t1.date and id=" + id + ") || ' days') as date_difference, skipped from habitsCalendar t1 WHERE id=" + id + " order by date ) GROUP BY date_difference ORDER BY end_date DESC LIMIT 1 )"
+
+      // console.log(currentStreakSql)
 
       let today = new Date();
       let year = today.getFullYear();
@@ -1844,26 +1785,10 @@ const Main = ({navigation}) => {
         day = '0' + day;
       }
 
-      let date = year+'-'+month+'-'+day;
-
-      // db.transaction(function (tx) {
-      //   tx.executeSql(
-      //     bestStreakSql,
-      //     [],
-      //     (sqlTxn, res) => {
-      //       setBestStreak(res.rows.item(0)["best_streak"]);
-      //       // console.log("best streak: " + bestStreak);÷
-      //       console.log("actual best streak: " + res.rows.item(0)["best_streak"]);
-      //       item.bestStreak = res.rows.item(0)["best_streak"];
-      //     },
-      //     error => {
-      //       console.log("error on getting best streak " + error.message);
-      //     },
-      //   );
-      // });
+      let todayDate = year+'/'+month+'/'+day;
 
       let yesterday = new Date()
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setDate(yesterday.getDate());
 
       year = yesterday.getFullYear()
       month = yesterday.getMonth()+1
@@ -1879,23 +1804,34 @@ const Main = ({navigation}) => {
 
       let yesterdayDate = year+'-'+month+'-'+day;
 
-      // console.log(yesterdayDate);
 
       db.transaction(function (tx) {
         tx.executeSql(
           currentStreakSql,
           [],
           (sqlTxn, res) => {
-            let latestDate = res.rows.item(0)["latest_date"];
-            if (date != latestDate && latestDate != yesterdayDate) {
-              // setCurrentStreak(0);
-              item.currentStreak = 0;
-            } else {
-              // setCurrentStreak(res.rows.item(0)["current_streak"]);
-              item.currentStreak = res.rows.item(0)["current_streak"];
+            // console.log(item.id, res.rows)
+            console.log("CS", item.id, "rows:", res.rows.length)
+            if (res.rows.length > 0) {
+              let latestDate = res.rows.item(0)["latest_date"];
+            // console.log(">>>> ", res.rows.item(0)["current_streak"], latestDate)
+              latestDate = latestDate.replace(/-/g,'/')  
+              var date1 = new Date(todayDate)
+              var date2 = new Date(latestDate)
+              
+              var Difference_In_Time = date1.getTime() - date2.getTime();
+              var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+              console.log(">>>>>", Difference_In_Days)
+              if (date != latestDate && Difference_In_Days > item.recurrence) {
+                // console.log("++++++", date, latestDate)
+                item.currentStreak = 0;
+              } else {
+                item.currentStreak = res.rows.item(0)["current_streak"];
+              }
             }
-            // console.log("actual current streak: " + item.currentStreak);
-            // console.log(item.habitName + " actual current streak: " + res.rows.item(0)["current_streak"]);
+            setHabits(habits)
+            setHabitsFetched(habitsFetched + 1);
           },
           error => { 
             console.log("error on getting current streak " + error.message);
@@ -1910,37 +1846,24 @@ const Main = ({navigation}) => {
       }
     };
 
-    const renderStatistics = ({ item }) => {
-      // console.log(item)
-
-      // console.log(habits)
-
-      for (let i = 0; i < habits.length; i++) {
-        // console.log(habits[i].habitName)
-        getBestStreak(habits[i]);
-        getCurrentStreak(habits[i]);
-      }
+    function renderStatistics ({ item }) {
 
       return (
         <NativeBaseProvider config={config}>
             <Center>
                 <Pressable w="80" h="20" mb="4" ml="4" mr="4"
                 bg="white"
-                // bg={onPress ? "coolGray.200" : onHover ? "coolGray.200" : "white"}
                 rounded="2xl"
                 shadow={3}
                 flexDirection="row"
-                // style={{flexWrap: "wrap", overflow: "hidden"}}
                 onPress={() => viewHabitStatistics(item)} 
                 style={{
                   flexWrap: "wrap",
                   overflow: "hidden",
                 }}
-                // onPress={() => alert("hi")}
                 >
                     <VStack w="264" flexDirection="row" justifyContent={"space-between"}>
                       <VStack pt={3} pb={3} pr={5} pl={5}>
-                          {/* <Text style={{ marginRight: 9 }}>{item.id}</Text>    */}
                           <HStack alignItems={"flex-start"}>
                             <Text fontSize="xl" fontWeight="bold" color="black">{item.habitName}</Text>
                           </HStack>
@@ -1952,13 +1875,10 @@ const Main = ({navigation}) => {
                                 Best Streak: {item.bestStreak} time/s 
                               </Text>
                           </HStack>
-                          
-                          {/* <Text>{item.formOfMeasurement}</Text>        */}
                       </VStack>
                     </VStack>
                     <Divider my={2} orientation="vertical" bg="transparent"/>
                     <VStack h="20" w="55"
-                    // bg="cyan.600"
                     bg={
                       {
                         linearGradient: {
@@ -1989,6 +1909,7 @@ const Main = ({navigation}) => {
       setGoalDisplay(item.goal);
       setCurrentStreakDisplay(item.currentStreak);
       setBestStreakDisplay(item.bestStreak);
+      getStreakDates(item);
     }
 
     const getName = () => {
@@ -2019,10 +1940,262 @@ const Main = ({navigation}) => {
       });
     };
 
-    useEffect(async () => {
-      await getName();
-      await getHabits();
+    function start_streak (yesterday, today) {
+      let year_yesterday = parseInt(yesterday[0])
+      let month_yesterday = parseInt(yesterday[1])
+      let day_yesterday = parseInt(yesterday[2])
+      let year_today = parseInt(today[0])
+      let month_today = parseInt(today[1])
+      let day_today = parseInt(today[2]);
+      let start = 0;
+      if (year_yesterday + 1 == year_today){ //case: check if today is january 1 and yesterday is not dec 31
+        if (month_today == 1 && month_yesterday == 12){
+          if (day_today == 1 && day_yesterday != 31){
+            start = 1;
+          }
+        }
+      }
+      else {
+        if (year_today == year_yesterday){ //case: same year same month but not consecutive days
+          if (month_today == month_yesterday){
+            if (day_today != day_yesterday + 1){
+              start = 1;
+            }
+          }
+          else if (month_yesterday + 1 == month_today){ //case: same year different month but not consecutive days
+            const months_31_days = [1, 3, 5, 7, 8, 10, 12]
+            const months_30_days = [4, 6, 9, 11]
+            if (day_today == 1 ){
+              if (months_31_days.includes(month_yesterday) && day_yesterday != 31){
+                start = 1;
+              }
+              else if (months_30_days.includes(month_yesterday) && day_yesterday != 30){
+                start = 1;
+              }
+              else if (month_yesterday == 2){ //case: month yesterday is february but not consecutive days
+                if (year_today % 4 == 0 && day_yesterday != 29){
+                  start = 1;
+                }
+                else if (year_today % 4 != 0 && day_yesterday != 28){
+                  start = 1;
+                }
+              }
+            } 
+          }
+        }
+      }
+
+      return start
+    }
+
+    function end_streak (today, tomorrow) {
+      let year_tomorrow = parseInt(tomorrow[0]);
+      let month_tomorrow = parseInt(tomorrow[1]);
+      let day_tomorrow = parseInt(tomorrow[2]);
+      let year_today = parseInt(today[0]);
+      let month_today = parseInt(today[1]);
+      let day_today = parseInt(today[2]);
+      let end = 0;
+      if (year_today + 1 == year_tomorrow){ //case: check if tomorrow is january 1 and tomorrow is not dec 31
+        if (month_tomorrow == 1 && month_today == 12){
+          if (day_tomorrow == 1 && day_today != 31){
+            end = 1;
+          }
+        }
+      }
+      else {
+        if (year_tomorrow == year_today){ //case: same year same month but not consecutive days
+          if (month_tomorrow == month_today){
+            if (day_tomorrow != day_today + 1){
+              end = 1;
+            }
+          }
+          else if (month_today + 1 == month_tomorrow){ //case: same year different month but not consecutive days
+            const months_31_days = [1, 3, 5, 7, 8, 10, 12]
+            const months_30_days = [4, 6, 9, 11]
+            if (day_tomorrow == 1 ){
+              if (months_31_days.includes(month_today) && day_today != 31){
+                end = 1;
+              }
+              else if (months_30_days.includes(month_today) && day_today != 30){
+                end = 1;
+              }
+              else if (month_today == 2){ //case: month today is february but not consecutive days
+                if (year_tomorrow % 4 == 0 && day_today != 29){
+                  end = 1;
+                }
+                else if (year_tomorrow % 4 != 0 && day_today != 28){
+                  end = 1;
+                }
+              }
+            } 
+          }
+        }
+      }
+
+      return end
+    }
+
+    const getStreakDates = (item) => {
+      db.transaction(txn => {
+        txn.executeSql(
+          'SELECT * FROM habitsCalendar WHERE id =' + item.id,
+          [],
+          (sqlTxn, res) => {
+            console.log("dates retrieved successfully");
+            let len = res.rows.length;
+            let streakDict = {};
+            if (len > 0){
+              if (item.recurrence == 1) {
+                let start = 1;
+                let end = 1;
+                for (let i = 0; i < len; i++) {
+                  const year_month_day_today = res.rows.item(i)["date"].split('-');
+                  if (len == 1){
+                    start = 1;
+                    end = 1;
+                  }
+
+                  else if (i == len - 1){
+                    const year_month_day_yesterday = res.rows.item(i-1)["date"].split('-');
+                    start = start_streak(year_month_day_yesterday, year_month_day_today)
+                    end = 1;
+                  }
+                  else if (i == 0){
+                    const year_month_day_tomorrow = res.rows.item(i+1)["date"].split('-');
+                    start = 1;
+                    end = end_streak(year_month_day_today, year_month_day_tomorrow);
+                  }
+                  else {
+                    const year_month_day_yesterday = res.rows.item(i-1)["date"].split('-');
+                    const year_month_day_tomorrow = res.rows.item(i+1)["date"].split('-');
+                    start = start_streak(year_month_day_yesterday, year_month_day_today)
+                    end = end_streak(year_month_day_today, year_month_day_tomorrow);
+                  }
+
+                  console.log("# " + res.rows.item(i)["id"] + " " + res.rows.item(i)["date"] + " " + res.rows.item(i)["skipped"])
+                  //determine if current date is start or end or neither
+                  if (res.rows.item(i)["skipped"] == 0){ //blue mark if not skipped
+                    if (start == 1 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: true}
+                    }
+                    else if (start == 1 && end == 0){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: false}
+                    }
+                    else if (start == 0 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#22d3ee', endingDay: true}
+                    }
+                    else {
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#22d3ee', endingDay: false}
+                    }
+                  }
+                  else { //gray mark if skipped #9ca3af
+                    if (start == 1 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: true}
+                    }
+                    else if (start == 1 && end == 0){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: false}
+                    }
+                    else if (start == 0 && end == 1){
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#9ca3af', endingDay: true}
+                    }
+                    else {
+                      streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: false, textColor: "white", color: '#9ca3af', endingDay: false}
+                    }
+                  }
+                }
+              }
+              else { //recurrence > 1
+                for (let i = 0; i < len; i++) {
+                  console.log("# " + res.rows.item(i)["id"] + " " + res.rows.item(i)["date"] + " " + res.rows.item(i)["skipped"])
+                  if (res.rows.item(i)["skipped"] == 0){
+                    streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#22d3ee', endingDay: true}
+                  }
+                  else {
+                    streakDict[res.rows.item(i)["date"]] = {disabled: true, startingDay: true, textColor: "white", color: '#9ca3af', endingDay: true}
+                  }
+                }
+              }
+            console.log(streakDict)
+            setStreakDates(streakDict)
+            }
+            else {
+              console.log("no streaks listed")
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
+    };
+
+    // const getStreaks = async () => {
+    //   // console.log(results)
+
+    //   let results = habits
+
+    //   for (let i = 0; i < results.length; i++) {
+    //     getBestStreak(results[i]);
+    //     getCurrentStreak(results[i]);  
+    //   }
+      
+    //   return results
+    // }
+
+    const getStreaks = async () => {
+      // console.log(results)
+
+      let rows;
+      let results = habits
+      db.transaction(txn => {
+        txn.executeSql(
+          `SELECT COUNT(*) FROM habitsCalendar`,
+          [],
+          (sqlTxn, res) => {
+            rows = res.rows.item(0)["COUNT(*)"]
+
+            if (rows > 0) {
+              console.log("rows > 0")
+              for (let i = 0; i < results.length; i++) {
+                getBestStreak(results[i]);
+                getCurrentStreak(results[i]);  
+              }
+            } else {
+              console.log("rows = 0")
+            }
+          },
+          error => {
+            console.log("error on getting name " + error.message);
+          },
+        );
+      });
+
+      return results;
+  }
+    
+
+    useEffect(() => {
+      (async function startStatistics () {
+        getName();
+      })();
+    
+      return () => {
+      };
     }, []);
+
+    useEffect(async () => {
+      if (habits.length == 0) {
+        getHabits()
+      }
+    })
+    
+    useEffect(async () => {
+      if (habitsFetched <= habits.length+1) {
+        let results = await getStreaks()
+        setHabits(results)
+      }
+    }, [habitsFetched])
 
     return (
       <NativeBaseProvider config={config}>
@@ -2033,7 +2206,7 @@ const Main = ({navigation}) => {
                   <Text ml={2} fontSize="4xl" fontWeight="bold" color="black">
                       Good job,
                   </Text>
-                  <Input editable={false} variant="unstyled" placeholder="(Name)" value={userNameDisplay} mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
+                  <Input variant="unstyled" placeholder="(Name)" value={userNameDisplay} mt={-3} fontSize="4xl" fontWeight="bold" color="black"/>
                   <Text ml={2} fontSize="lg" color="gray.400">{date}</Text>
               </VStack>
           </HStack>
@@ -2096,7 +2269,7 @@ const Main = ({navigation}) => {
                       </VStack>
                     </Flex>
                   </Box>
-                  <Box width="350" height="250" bg={{
+                  {/* <Box width="350" height="250" bg={{
                     linearGradient: {
                       colors: ["#11BCE1", "#66B1F2"],
                       start: [0, 0],
@@ -2106,6 +2279,12 @@ const Main = ({navigation}) => {
                   <Text fontSize="sm" fontWeight="semibold" color="white" alignSelf={"center"}>
                     April 2022
                   </Text>
+                  </Box> */}
+                  <Box width="350" height="250" alignSelf="center" >
+                    <Calendar
+                      markingType={'period'}
+                      markedDates={streakdates}
+                    />
                   </Box>
                 </VStack>
               </Box>
